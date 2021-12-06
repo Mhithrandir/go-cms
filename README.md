@@ -3,7 +3,7 @@ Simple cms written in golang
 
 # Documentation
 
-first thing first, i used to maintain this structure for all of my package: 
+first thing first, i used this structure for all of my package: 
 - **package name** (folder)
 - \***package name\*.go** (main package)
 - **data-types.go** (contains all types, especially "var DB *database.Database", variable used to read\write from database)
