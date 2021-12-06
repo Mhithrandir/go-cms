@@ -4,8 +4,8 @@ Simple cms written in golang
 # Documentation
 
 first thing first, i used this structure for all of my package: 
-- **package name** (folder)
-- \***package name\*.go** (main package)
+- **package name** (folder) *mandatory*
+- \***package name\*.go** (main package) *mandatory*
 - **data-types.go** (contains all types, especially "var DB *database.Database", variable used to read\write from database)
 - **writing-func.go** (contains all func that write in the database)
 - **reading-func.go** (contains all func that read in the database)
