@@ -28,17 +28,6 @@ func ParseRoute(request customrequest.CustomRequest) {
 	}
 }
 
-//loadMenuFromPost load a struct menu from post body request
-func loadMenuFromPost(request customrequest.CustomRequest) (Menu, error) {
-	var menuJSON Menu
-	err := request.ParserBodyRequest(&menuJSON)
-	if err != nil {
-		commons.BadRequest(request, err)
-		return Menu{}, err
-	}
-	return menuJSON, nil
-}
-
 //GetMenu Load a specific menu
 func GetMenu(request customrequest.CustomRequest) {
 	switch commons.CommonLoad(request, true) {
@@ -123,7 +112,8 @@ func AddMenu(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	menuJSON, err := loadMenuFromPost(request)
+	var menuJSON Menu
+	err := request.ParserBodyRequest(&menuJSON)
 	if err != nil {
 		return
 	}
@@ -161,7 +151,8 @@ func UpdateMenu(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	menuJSON, err := loadMenuFromPost(request)
+	var menuJSON Menu
+	err := request.ParserBodyRequest(&menuJSON)
 	if err != nil {
 		return
 	}
