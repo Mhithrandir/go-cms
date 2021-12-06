@@ -136,6 +136,3 @@ the template contains:
 - errors template for error page
 - system system template like header, footer and a redirect page
 - views all template handled in "page" package
-=======
-- 
->>>>>>> f3977eb24cc35ecfa2b23b467f2795290b59e74e
