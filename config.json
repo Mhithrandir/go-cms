@@ -20,8 +20,8 @@
  "MaxUploadSize": 10485760,
  "SiteUrl": "http://localhost/",
  "AccountMail": {
-  "Username": "ghimdalas@gmail.com",
-  "Password": "Mhithrandir82",
+  "Username": "",
+  "Password": "",
   "SMTPServer": "smtp.gmail.com",
   "Mime": "1.0;\nContent-Type: text/html; charset='UTF-8';",
   "Port": "587"
