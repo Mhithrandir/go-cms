@@ -36,16 +36,6 @@ func ParseRoute(request customrequest.CustomRequest) {
 	}
 }
 
-//loadUserFromPost load a struct user from post body request
-func loadUserFromPost(request customrequest.CustomRequest) (User, error) {
-	var userJSON User
-	err := request.ParserBodyRequest(&userJSON)
-	if err != nil {
-		return User{}, err
-	}
-	return userJSON, nil
-}
-
 //Login handle users login
 func Login(request customrequest.CustomRequest) {
 	switch commons.CommonLoad(request, false) {
@@ -61,7 +51,8 @@ func Login(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	userJSON, err := loadUserFromPost(request)
+	var userJSON User
+	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
 		commons.BadRequest(request, err)
 		return
@@ -129,7 +120,8 @@ func Register(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	userJSON, err := loadUserFromPost(request)
+	var userJSON User
+	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
 		commons.BadRequest(request, err)
 		return
@@ -255,13 +247,14 @@ func CheckUserExist(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	userJson, err := loadUserFromPost(request)
+	var userJSON User
+	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
 		commons.BadRequest(request, err)
 		return
 	}
 
-	results, err := userJson.Exist()
+	results, err := userJSON.Exist()
 	if err != nil {
 		commons.BadRequest(request, err)
 		return
@@ -332,7 +325,8 @@ func UpdateUser(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	userJSON, err := loadUserFromPost(request)
+	var userJSON User
+	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
 		commons.BadRequest(request, err)
 		return

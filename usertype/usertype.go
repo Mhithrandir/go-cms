@@ -13,28 +13,13 @@ func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "getusertypes":
 		GetUserTypes(request)
-		break
 	case "deleteusertype":
 		DeleteUserType(request)
-		break
 	case "addusertype":
 		AddUserType(request)
-		break
 	default:
 		commons.NotFound(request)
-		break
 	}
-}
-
-//loadUserTypeFromPost load a struct usertype from post body request
-func loadUserTypeFromPost(request customrequest.CustomRequest) (UserType, error) {
-	var usertypeJSON UserType
-	err := request.ParserBodyRequest(&usertypeJSON)
-	if err != nil {
-		commons.BadRequest(request, err)
-		return UserType{}, err
-	}
-	return usertypeJSON, nil
 }
 
 //GetUserTypes retrieve alla UserTypes from database
@@ -104,7 +89,8 @@ func AddUserType(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	userTypeJSON, err := loadUserTypeFromPost(request)
+	var userTypeJSON UserType
+	err := request.ParserBodyRequest(&userTypeJSON)
 	if err != nil {
 		commons.BadRequest(request, err)
 		return

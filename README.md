@@ -87,4 +87,51 @@ Handle all api request for the menu table
 - AddMenu add a menu item in the database
 - UpdateMenu update a menu item in the database
 - DeleteMenu delete a menu item in the database
-- 
+
+### page
+Handle the pages of the website
+- ParseRoute handle the func specified in the request
+- LoadTemplate load a template
+- common load the menu and specific template 
+- all func for a specific page
+
+### route
+Handle all api request for the route table
+- ParseRoute handle the func specified in the request
+- AddRoute add a new route
+- GetRoutes returns all routes configured in the database
+- DeleteRoute delete a route from database
+- UpdateRoute update a route in the database
+- CheckRoute check if user has permission to open this route
+
+### user
+Handle all api request for the user table
+- Login handle users login
+- Register register a new user
+- VerifyUser verify the mail of a user
+- CheckUserExist verify the user exist
+- LoadUsers load all users
+- UpdateUser update user information
+
+*to be: implement delete user*
+
+### usertype
+Handle all api request for the usertype table
+- ParseRoute handle the func specified in the request
+- GetUserTypes retrieve alla UserTypes from database
+- DeleteUserType delete a route from database
+- AddUserType insert a UserType in database
+
+there is no update for usertype, simply delete or add
+
+### www
+This folder contains these folders:
+- scripts for javascript files
+- styles for css files
+- templates for htm template files
+
+the template contains:
+- components sub template (like menu)
+- errors template for error page
+- system system template like header, footer and a redirect page
+- views all template handled in "page" package

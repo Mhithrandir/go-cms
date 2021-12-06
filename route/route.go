@@ -16,34 +16,17 @@ func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "addroute":
 		AddRoute(request)
-		break
 	case "getroutes":
 		GetRoutes(request)
-		break
 	case "deleteroute":
 		DeleteRoute(request)
-		break
 	case "updateroute":
 		UpdateRoute(request)
-		break
 	case "checkroute":
 		CheckRoute(request)
-		break
 	default:
 		commons.NotFound(request)
-		break
 	}
-}
-
-//loadRouteFromPost load a struct route from post body request
-func loadRouteFromPost(request customrequest.CustomRequest) (Route, error) {
-	var routeJSON Route
-	err := request.ParserBodyRequest(&routeJSON)
-	if err != nil {
-		commons.BadRequest(request, err)
-		return Route{}, err
-	}
-	return routeJSON, nil
 }
 
 //AddRoute add a new route
@@ -61,7 +44,8 @@ func AddRoute(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	routeJSON, err := loadRouteFromPost(request)
+	var routeJSON Route
+	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
 		return
 	}
@@ -185,7 +169,8 @@ func UpdateRoute(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	routeJSON, err := loadRouteFromPost(request)
+	var routeJSON Route
+	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
 		return
 	}
@@ -222,7 +207,8 @@ func CheckRoute(request customrequest.CustomRequest) {
 
 	DB = request.DB
 
-	routeJSON, err := loadRouteFromPost(request)
+	var routeJSON Route
+	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
 		return
 	}
