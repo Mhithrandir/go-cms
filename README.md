@@ -136,3 +136,53 @@ the template contains:
 - errors template for error page
 - system system template like header, footer and a redirect page
 - views all template handled in "page" package
+
+### simple explanation
+every url must be mapped in the route table, so every user has it's usertype, so you can set specific permission for specific type of user (you can create any different type of usertype). And every menu item in the same way must be setted for the specific usertype
+
+the database contains these tables:
+- menus contains all menu items
+- menupermission specific witch permission has a menu item (every item can have more than 1 permission)
+- routes contains all url handled by the website (*Attention routes can handled wildcards with "\*"*)
+- routespermission specific witch permission has a route item (every item can have more than 1 permission)
+- storedqueries the queryes used by the code
+- users contains all users registered in the website
+- usertypes contains all type of user
+
+### menus
+- MenuName a field to group all menu items in a specific menu
+- Name the label written in the html
+- Parent the menu can handled children like accordion
+- MenuOrder the order to print the menu
+- *system fields*
+
+### menupermission
+- IDMenu external key for table menu
+- IDUserType external key for table usertype
+- *system fields*
+
+### routes
+- Package the name of the package
+- Func the name of the func
+- Type a string field, can contain "api", "be", "fe"
+- *system fields*
+
+### routepermission
+- IDRoute external key for route table
+- IDUserType external key for usertype table
+- *system fields*
+
+### storedqueries
+- Name name of the stored query
+- Command sql command
+- *system fields*
+
+### user
+- Username
+- Password crypted with md5
+- LastLogin
+- DatePassword last time the password was chenged (or created)
+- PasswordDuration (in days) the amounth of days until the password will expired (the value -1 means the password never expire)
+- IDUserType external key to table usertype
+- CodeResetPassword a code (guid) for verify user email
+- *system fields*
