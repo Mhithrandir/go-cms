@@ -1,0 +1,8 @@
+<ul id="mainMenu">
+    {{ range $m := .MainMenu }}
+    <li>
+        {{ template "menu-item" $m }}
+    </li>
+    {{end}}
+</ul>
+<h2>This is the {{ .Title }} homepage for the website</h2>

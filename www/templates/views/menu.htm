@@ -1,0 +1,202 @@
+<ul id="mainMenu">
+    {{ range $m := .MainMenu }}
+    <li>
+        {{ template "menu-item" $m }}
+    </li>
+    {{end}}
+</ul>
+<div>
+    <h2>Menus</h2>
+    <ul id="dati"></ul>
+    <button class="btn mt-1" onclick="Add();">Add menu item</button>
+</div>
+<div class="dialog" id="edit-dialog">
+    <div class="body">
+        <header>Edit Route</header>
+        <div class="content">
+            <form class="layout" id="edit-menu">
+                <label for="menuname">MenuName</label>
+                <input id="menuname" class="form-control">
+                <label for="name">Name</label>
+                <input id="name" class="form-control">
+                <label for="path">Path</label>
+                <input id="path" class="form-control">
+                <label for="parent">Parent</label>
+                <select id="parent" class="form-control"></select>
+                <label for="order">Order</label>
+                <input id="order" type="number" min="-1" class="form-control">
+                <label>Permissions:</label>
+                <div id="usertypes-checkbox">
+                </div>
+            </form>
+        </div>
+        <footer style="text-align: right;">
+            <button class="btn" onclick="Save()">Save</button>
+            <button class="btn-error" onclick="CloseForm()">Cancel</button>
+        </footer>
+    </div>
+</div>
+<script>
+    var rows = [];
+    var userTypes = [];
+    var selectedRow;
+    $(document).ready(() => {
+        $("#edit-dialog").hide();
+        Get("../api/usertype/getusertypes", 0).done(function(data) {
+            userTypes = data.Data;
+            userTypes.forEach((u) => {
+                $("#usertypes-checkbox").append($("<input class=\"form-control\" id=\"" + u.Description + "\" type=\"checkbox\">"));
+                $("#usertypes-checkbox").append($("<label for=\"" + u.Description + "\">" + u.Description + "</label>"));
+            });
+        });
+        LoadMenu();
+    });
+    function LoadMenu() {
+        $("#dati").children().empty();
+        Get("../api/menu/getplainmenu?page=0", 0).done(function(data) {
+            rows = data.Data;
+            let menuNames = []
+            $("#parent").append($("<option value=\"-1\">No parent</option>"));
+            rows.forEach((row) => {
+                if (menuNames.indexOf(row.MenuName) == -1) {
+                    menuNames[menuNames.length] = row.MenuName;
+                }
+                $("#parent").append($("<option value=\"" + row.ID + "\">" + row.Name + "</option>"));
+            });
+            menuNames.forEach((m) => {
+                let tr = $("<tr></tr>");
+                let li = $("<li><header onclick='Toggle(this, \"" + m + "\");'><span class='icon-expander'>:.</span><span class='ml-1'>" + m + "<span></header></li>");
+                let table = $("<table id='" + m + "'></table>");
+                let trh = $("<tr></tr>");
+                $(trh).append($("<th>Name</th>"));
+                $(trh).append($("<th>Parent</th>"));
+                $(trh).append($("<th>Path</th>"));
+                $(trh).append($("<th>Order</th>"));
+                $(table).append($(trh));
+                userTypes.forEach((row) => {
+                        $(trh).append($("<th>" + row.Description + "</th>"));
+                });
+                $(trh).append($("<th>#</th>"));
+                rows.forEach((row) => {
+                    if (row.MenuName == m) {
+                        let childtr = $("<tr></tr>");
+                        $(childtr).append($("<td>" + row.Name + "</td>"));
+                        $(childtr).append($("<td>" + row.Parent + "</td>"));
+                        $(childtr).append($("<td>" + row.Path + "</td>"));
+                        $(childtr).append($("<td>" + row.MenuOrder + "</td>"));
+                        row.Permissions.forEach((p) => {
+                            if(p.Enabled) {
+                                $(childtr).append($("<td>&times;</td>"));
+                            }
+                            else {
+                                $(childtr).append($("<td></td>"));
+                            }
+                        });
+                        $(childtr).append($("<td><button class=\"btn-warning\" onclick=\"Edit(" + row.ID + ");\">Edit</button><button class=\"btn-error ml-1\" onclick=\"SetDeleteMessage(" + row.ID + ", '');\">Delete</button></td>"));
+                        $(table).append($(childtr));
+                    }
+                });
+                $(li).append($(table));
+                $("#dati").append(li);
+            });
+        }).fail(function(data) {
+            ShowError(data);
+        });
+    }
+    function Toggle(element, menuName) {
+        $("#" + menuName).toggle(600);
+        $($(element).children()[0]).toggleClass("icon-expander");
+        $($(element).children()[0]).toggleClass("icon-expander-expanded");
+    }
+    function Add() {
+        $('#edit-dialog').show();
+        selectedRow = {};
+        selectedRow.IsNew = true;
+    }
+    function Edit(id) {
+        $('#edit-dialog').show();
+        SetSelectedRecord(id);
+        $("#menuname").val(selectedRow.MenuName);
+        $("#name").val(selectedRow.Name);
+        $("#path").val(selectedRow.Path);
+        $("#order").val(selectedRow.MenuOrder);
+        $("#parent").val(selectedRow.Parent);
+        selectedRow.Permissions.forEach((p) => {
+            $("#" + p.UserType.Description).prop("checked", p.Enabled);
+        });
+    }
+    function CloseForm() {
+        $("#edit-menu")[0].reset();
+        $('#edit-dialog').hide();
+        selectedRow = null;
+    }
+    function Save() {
+        //Setting the new object
+        let menu = {};
+        if(selectedRow != null) {
+            menu = selectedRow;
+            let count = 0;
+            $('#usertypes-checkbox').children().each((c) => {
+                if($($('#usertypes-checkbox').children()[c]).is("input")) {
+                    if(menu.Permissions == null) {
+                        menu.Permissions = [];
+                    }
+                    if(menu.Permissions[count] == null) {
+                        menu.Permissions[count] = {};
+                        menu.Permissions[count].UserType = {};
+                        menu.Permissions[count].UserType.Description = '';
+                        menu.Permissions[count].Enabled = false;
+                    }
+                    menu.Permissions[count].UserType.Description = $($('#usertypes-checkbox').children()[c]).attr('id')
+                    menu.Permissions[count].Enabled = $($('#usertypes-checkbox').children()[c]).prop("checked");
+                    count++;
+                }
+            });
+        }
+        else {
+            //Istantiate new structure for saving the menu
+            menu.Permissions = [];
+            $('#usertypes-checkbox').children().each((c) => {
+                if($($('#usertypes-checkbox').children()[c]).is("input")) {
+                    menu.Permissions[menu.Permissions.length] = { UserType: { Description: $($('#usertypes-checkbox').children()[c]).attr('id') }, Enabled: $($('#usertypes-checkbox').children()[c]).prop("checked") };
+                }
+            });
+        }
+        menu.MenuName = $('#menuname').val();
+        menu.Name = $('#name').val();
+        menu.Parent = $('#parent').val();
+        menu.Path = $('#path').val();
+        menu.MenuOrder = parseInt($('#order').val());
+        menu.Parent = parseInt($('#parent').val());
+        let func = "updatemenu";
+        if(selectedRow.IsNew) {
+            routeUrl = "addmenu";
+        }
+        Post("menu", func, menu).done(function(data) {
+            LoadMenu();
+        }).fail(function(data) {
+            ShowError(data);
+        });
+        $('#edit-dialog').hide();
+    }
+    function OnDelete() {
+        $('#delete-dialog').hide();
+        id = $("#delete-dialog-button").attr("refer-id");
+        Delete("menu", "deletemenu", id).done(function(data) {
+            LoadMenu();
+        }).fail(function(data) {
+            ShowError(data);
+        });
+    }
+    function OpenDeleteDialog(id) {
+        SetSelectedRecord(id);
+    }
+    function SetSelectedRecord(id) {
+        rows.forEach((row) => {
+            if(row.ID == id) {
+                selectedRow = row;
+                return;
+            }
+        });
+    }
+</script>

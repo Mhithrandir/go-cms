@@ -1,0 +1,23 @@
+{{ define "menu-item" }}
+    {{ if (ne .Path "") }}
+        <a class="menu-header" href="{{ .Path }}">{{ .Name }}</a>
+    {{else}}
+        <span class="menu-header" onclick="MenuItemToglle(this)"><span class="icon-menu">:.</span> {{ .Name }}</span>
+    {{end}}
+    <ul style="display: none;">
+        {{ range $s := .Childrens }}
+            <li>
+                {{ template "menu-item" $s }}
+            </li>
+        {{end}}
+    </ul>
+    <script>
+        function MenuItemToglle(menuItem) {
+            $($(menuItem).children()[0]).toggleClass("icon-menu-expanded");
+            $($(menuItem).children()[0]).toggleClass("icon-menu");
+            $(menuItem).toggleClass("menu-header");
+            $(menuItem).toggleClass("menu-header-expanded");
+            $($($(menuItem).parent()).children()[1]).toggle(800);
+        }
+    </script>
+{{end}}

@@ -1,0 +1,22 @@
+    </div>
+    <label id="error-message"></label>
+    <div class="dialog" id="delete-dialog">
+        <div class="body">
+            <header>Delete...</header>
+            <div class="content">
+                <h2 id="delete-message">Are you sure you want to delete it?</h2>
+            </div>
+            <footer style="text-align: right;">
+                <button id="delete-dialog-button" class="btn" onclick="OnDelete()">Yes</button>
+                <button class="btn-error" onclick="$('#delete-dialog').hide();">Cancel</button>
+            </footer>
+        </div>
+    </div>
+    <script>
+        $(document).ready(() => {
+            $("#delete-dialog").hide();
+            $("#error-message").hide();
+        });
+    </script>
+</body>
+</html>

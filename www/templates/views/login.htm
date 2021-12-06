@@ -1,0 +1,36 @@
+<ul id="mainMenu">
+    {{ range $m := .MainMenu }}
+    <li>
+        {{ template "menu-item" $m }}
+    </li>
+    {{end}}
+</ul>
+<div>
+    <h2>Login in the website</h2>
+    <form method="post">
+        <label for="username">Username</label>
+        <input class="form-control"id="username" name="username">
+        <label for="password">Password</label>
+        <input class="form-control"id="password" name="password" type="password">
+        <button class="btn" type="button" onclick="Login()">Login</button>
+        <label id="success"></label>
+    </form>
+</div>
+<script>
+    function Login() {
+        Post("user", "login", { "username": $("#username").val() , "password": $("#password").val()}).done(function(data) {
+            console.log(data);
+            SetLogged(data.Data);
+            Redirect("./");
+            $("#success").text("Login succefully, you will redirect to the homepage");
+        }).fail(function(data) {
+            if(data.status == 401) {
+                $("#password").val("");
+                ShowError("Invalid username or Password");
+            }
+            else {
+                console.error(data);
+            }
+        });
+    }
+</script>

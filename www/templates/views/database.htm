@@ -1,0 +1,81 @@
+<ul id="mainMenu">
+    {{ range $m := .MainMenu }}
+    <li>
+        {{ template "menu-item" $m }}
+    </li>
+    {{end}}
+</ul>
+<div>
+    <h2>Database</h2>
+    <div style="display: grid; grid-template-columns: 1fr 9fr;column-gap: 15px;">
+        <ul id="dati"></ul>
+        <div id="table">
+            <button class="btn-warning">SQL</button>
+            <div id="table-content" class="mt-1">
+                
+            </div>
+            <!-- <div id="sql" style="width: 800px; height: 600px; border: 1px solid grey"></div> -->
+
+            <!-- <script
+			src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"
+			integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk="
+			crossorigin="anonymous"
+		></script> -->
+            <!-- <script>
+                require.config({ paths: { vs: '../node_modules/monaco-editor/min/vs' } });
+
+                require(['vs/editor/editor.main'], function () {
+                    var editor = monaco.editor.create(document.getElementById('sql'), {
+                        value: [''],
+                        language: 'sql'
+                    });
+                });
+            </script> -->
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(() => {
+        Get("../api/dbapi/getdatabases", 0).done(function(data) {
+            data.Data.forEach((db) => {
+                $("#dati").append($("<li><header onclick='Toggle(this, \"" + atob(db.Database) + "\");'><span class='icon-expander'>:.</span><span class='ml-1'>" + atob(db.Database) + "<span></header></li>"));
+            });
+        });
+    });
+    function Toggle(element, name) {
+        $($(element).children()[0]).toggleClass("icon-expander");
+        $($(element).children()[0]).toggleClass("icon-expander-expanded");
+        if($($(element).children()[0]).hasClass("icon-expander-expanded")) {
+            Get("../api/dbapi/gettables?db=" + name, 0).done(function(data) {
+                let ul = $("<ul class=\"children-ul\" id=\"" + name + "\"></ul>");
+                data.Data.forEach((t) => {
+                    $(ul).append($("<li><header onclick='OpenTable(\"" + name + "." + atob(t.TABLE_NAME) + "\");'><span class='icon-expander'>:.</span><span class='ml-1'>" + atob(t.TABLE_NAME) + "<span></header></li>"));
+                });
+                $(element).parent().append(ul);
+            });
+        }
+        else {
+            $("#" + name).remove();
+        }
+    }
+    function OpenTable(name) {
+        Get("../api/dbapi/opentable?name=" + name, 0).done(function(data) {
+            $("#table-content").children().empty();
+            let columns = Object.getOwnPropertyNames(data.Data[0]);
+            let table = $("<table></table>");
+            let h = $("<tr></tr>");
+            columns.forEach((c) => {
+                $(h).append("<th>" + c + "</th>");
+            });
+            $(table).append($(h));
+            data.Data.forEach((row) => {
+                let tr = $("<tr></tr>");
+                columns.forEach((c) => {
+                    $(tr).append($("<td>" + atob(row[c]) + "</td>"));
+                });
+                $(table).append($(tr));
+            });
+            $("#table-content").append($(table));
+        });
+    }
+</script>
