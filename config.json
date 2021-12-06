@@ -15,8 +15,8 @@
  "TokenDuration": 120,
  "RegistrationBody": "",
  "SubjectRegistration": "Register to CMS",
- "LinkVerifyRegistration": "http://localhost:4200/#/verifyUser",
- "NoreplyMailAddress": "ghimdalas@gmail.com",
+ "LinkVerifyRegistration": "verifyUser",
+ "NoreplyMailAddress": "",
  "MaxUploadSize": 10485760,
  "SiteUrl": "http://localhost/",
  "AccountMail": {
