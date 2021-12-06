@@ -50,11 +50,11 @@ This package is responsable to parse all request to the server and istantiate a 
 - ParserBodyRequest retrieve a body request (usually a POST request)
  
 Example:
-> [1]\*request type\*/\*package name\*/\*func name\* (www.mywebsite.com/api/menu/getmenu)
+> - [1]\*request type\*/\*package name\*/\*func name\* (www.mywebsite.com/api/menu/getmenu)
 > this is an api request, it must specified the package to handle the request and the func to call
-> [2]\*request type\*/\*func name\* (www.mywebsite.com/be/users)
+> - [2]\*request type\*/\*func name\* (www.mywebsite.com/be/users)
 > this is request for backend page, the package will be set for default "page", in case there is no func, it simply set the func = "home" for the backend homepage
-> [3]\*func name\* (www.mywebsite.com/user)
+> - [3]\*func name\* (www.mywebsite.com/user)
 > this is a frontend request, the package will be set for default a "page", in case there is no func, it simply set the func = "home" for the frontend homepage
 
 ### database
