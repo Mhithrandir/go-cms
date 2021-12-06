@@ -3,9 +3,9 @@ Simple cms written in golang
 
 # Documentation
 
-first thing first, i used to maintain this structure for all of my package: 
-- **package name** (folder)
-- \***package name\*.go** (main package)
+first thing first, i used this structure for all of my package: 
+- **package name** (folder) *mandatory*
+- \***package name\*.go** (main package) *mandatory*
 - **data-types.go** (contains all types, especially "var DB *database.Database", variable used to read\write from database)
 - **writing-func.go** (contains all func that write in the database)
 - **reading-func.go** (contains all func that read in the database)
@@ -50,11 +50,11 @@ This package is responsable to parse all request to the server and istantiate a 
 - ParserBodyRequest retrieve a body request (usually a POST request)
  
 Example:
-> [1]\*request type\*/\*package name\*/\*func name\* (www.mywebsite.com/api/menu/getmenu)
+> - [1]\*request type\*/\*package name\*/\*func name\* (www.mywebsite.com/api/menu/getmenu)
 > this is an api request, it must specified the package to handle the request and the func to call
-> [2]\*request type\*/\*func name\* (www.mywebsite.com/be/users)
+> - [2]\*request type\*/\*func name\* (www.mywebsite.com/be/users)
 > this is request for backend page, the package will be set for default "page", in case there is no func, it simply set the func = "home" for the backend homepage
-> [3]\*func name\* (www.mywebsite.com/user)
+> - [3]\*func name\* (www.mywebsite.com/user)
 > this is a frontend request, the package will be set for default a "page", in case there is no func, it simply set the func = "home" for the frontend homepage
 
 ### database
@@ -87,6 +87,7 @@ Handle all api request for the menu table
 - AddMenu add a menu item in the database
 - UpdateMenu update a menu item in the database
 - DeleteMenu delete a menu item in the database
+<<<<<<< HEAD
 
 ### page
 Handle the pages of the website
@@ -135,3 +136,6 @@ the template contains:
 - errors template for error page
 - system system template like header, footer and a redirect page
 - views all template handled in "page" package
+=======
+- 
+>>>>>>> f3977eb24cc35ecfa2b23b467f2795290b59e74e
