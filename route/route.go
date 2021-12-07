@@ -25,7 +25,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	case "checkroute":
 		CheckRoute(request)
 	default:
-		commons.NotFound(request)
+		errorpages.NotFound(request)
 	}
 }
 
@@ -52,10 +52,10 @@ func AddRoute(request customrequest.CustomRequest) {
 
 	exist, err := routeJSON.Exist()
 	if exist && err == nil {
-		commons.BadRequest(request, "Route already exist")
+		errorpages.BadRequest(request, "Route already exist")
 		return
 	} else if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
@@ -67,7 +67,7 @@ func AddRoute(request customrequest.CustomRequest) {
 		usertype.DB = DB
 		u, err := usertype.GetUserTypeFromDescription(routeJSON.Permissions[i].Description)
 		if err != nil {
-			commons.InternalServerError(request, err)
+			errorpages.InternalServerError(request, err.Error())
 			return
 		}
 		routeJSON.Permissions[i].IDUserType = u.ID
@@ -75,7 +75,7 @@ func AddRoute(request customrequest.CustomRequest) {
 
 	err = routeJSON.Add()
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
@@ -100,7 +100,7 @@ func GetRoutes(request customrequest.CustomRequest) {
 	page, err := strconv.Atoi(request.Parameters["page"])
 	if err != nil {
 		logs.Save("routes", "GetRoutes", "Parameter page not valid", logs.Error, err.Error())
-		commons.BadRequest(request, err)
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 	var _config config.Config
@@ -111,13 +111,13 @@ func GetRoutes(request customrequest.CustomRequest) {
 
 	result, err := LoadRoutes(page, _config.Pagination)
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
 	count, err := CountRoute()
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
@@ -142,13 +142,13 @@ func DeleteRoute(request customrequest.CustomRequest) {
 	id, err := strconv.Atoi(request.Parameters["ID"])
 	if err != nil {
 		logs.Save("routes", "DeleteRoute", "Parameter id not valid", logs.Error, err.Error())
-		commons.BadRequest(request, err)
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
 	err = Delete(int64(id))
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, true, 0, 0)
@@ -177,16 +177,16 @@ func UpdateRoute(request customrequest.CustomRequest) {
 
 	exist, err := routeJSON.Exist()
 	if !exist && err != nil {
-		commons.BadRequest(request, "Route not exist")
+		errorpages.BadRequest(request, "Route not exist")
 		return
 	} else if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
 	err = routeJSON.Update()
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, true, 0, 0)
@@ -215,7 +215,7 @@ func CheckRoute(request customrequest.CustomRequest) {
 
 	permission, err := routeJSON.CheckRoute(request.Claims.IDUserType)
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 

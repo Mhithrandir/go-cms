@@ -115,7 +115,7 @@ func (r Route) CheckRoute(iduserType int64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	results, err := DB.ScanTable(sql, iduserType, r.Package, r.Func, iduserType, r.Package)
+	results, err := DB.ScanTable(sql, iduserType, r.Package, r.Func, r.Type)
 	if err != nil {
 		return false, err
 	}

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cms/component"
 	"cms/config"
 	"cms/customrequest"
 	"cms/database"
@@ -65,6 +66,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		menu.ParseRoute(request)
 	case "dbapi":
 		dbapi.ParseRoute(request)
+	case "component":
+		component.ParseRoute(request)
 	default:
 		errorpages.NotFound(request)
 		break

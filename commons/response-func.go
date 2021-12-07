@@ -34,33 +34,3 @@ func Ok(request customrequest.CustomRequest, value interface{}, page, pageCount 
 func PasswordExpired(request customrequest.CustomRequest, value interface{}) {
 	SetHeaders(request, http.StatusUnauthorized, value)
 }
-
-//NotAccettable respond with the 406 error
-func NotAccettable(request customrequest.CustomRequest, value interface{}) {
-	SetHeaders(request, http.StatusNotAcceptable, value)
-}
-
-//BadRequest respond with the 400 error
-func BadRequest(request customrequest.CustomRequest, value interface{}) {
-	SetHeaders(request, http.StatusBadRequest, value)
-}
-
-//InternalServerError respond with the 500 error
-func InternalServerError(request customrequest.CustomRequest, value interface{}) {
-	SetHeaders(request, http.StatusInternalServerError, value)
-}
-
-//MethodNotAllowed respond with the 405 error
-func MethodNotAllowed(request customrequest.CustomRequest) {
-	SetHeaders(request, http.StatusMethodNotAllowed, nil)
-}
-
-//Unauthorized respond with the 401 error
-func Unauthorized(request customrequest.CustomRequest) {
-	SetHeaders(request, http.StatusUnauthorized, nil)
-}
-
-//NotFound respond with the 404 error
-func NotFound(request customrequest.CustomRequest) {
-	SetHeaders(request, http.StatusNotFound, nil)
-}

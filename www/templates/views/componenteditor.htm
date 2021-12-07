@@ -1,0 +1,149 @@
+<ul id="mainMenu">
+    {{ range $m := .MainMenu }}
+    <li>
+        {{ template "menu-item" $m }}
+    </li>
+    {{end}}
+</ul>
+<div>
+    <h2>Component editor</h2>
+    <table id="dati">
+        <tr>
+            <th>Name</th>
+            <th>IsBacked</th>
+        </tr>
+    </table>
+    <button class="btn mt-1" onclick="Add();">Add menu item</button>
+</div>
+<div class="dialog" id="edit-dialog">
+    <div class="body">
+        <header>Edit Route</header>
+        <div class="content">
+            <form class="layout" id="edit-component">
+                <label for="name">Name</label>
+                <input id="name" class="form-control">
+                <label for="content">Content</label>
+                <textarea id="name" class="form-control"></textarea>
+                <label>Permissions:</label>
+                <div id="usertypes-checkbox">
+                </div>
+            </form>
+        </div>
+        <footer style="text-align: right;">
+            <button class="btn" onclick="Save()">Save</button>
+            <button class="btn-error" onclick="CloseForm()">Cancel</button>
+        </footer>
+    </div>
+</div>
+<script>
+    var userTypes = [];
+    var selectedRow;
+    $(document).ready(() => {
+        $("#edit-dialog").hide();
+        Get("../api/usertype/getusertypes", 0).done(function(data) {
+            userTypes = data.Data;
+            userTypes.forEach((u) => {
+                $("#usertypes-checkbox").append($("<input class=\"form-control\" id=\"" + u.Description + "\" type=\"checkbox\">"));
+                $("#usertypes-checkbox").append($("<label for=\"" + u.Description + "\">" + u.Description + "</label>"));
+                $("tr").append($("<th>" + u.Description + "</th>"));
+            });
+            $("tr").append($("<th>#</th>"));
+        });
+        LoadComponents();
+    });
+    function LoadComponents() {
+        while($($("#dati").children()[0]).children().length > 1) {
+            $($($("#dati").children()[0]).children()[1]).remove();
+        }
+        Get("../api/component/getcomponents?page=0", 0).done(function(data) {
+            rows = data.Data;
+            rows.forEach((row) => {
+                var tr = $("<tr></tr>");
+                $(tr).append($("<td>" + row.Name + "</td>"));
+                $(tr).append($("<td>" + row.IsBackEnd + "</td>"));
+                row.Permissions.forEach((p) => {
+                    if(p.Enabled) {
+                        $(tr).append($("<td>&times;</td>"));
+                    }
+                    else {
+                        $(tr).append($("<td></td>"));
+                    }
+                });
+                $(tr).append($("<td><button class=\"btn-warning\" onclick=\"Edit(" + row.ID + ");\">Edit</button><button class=\"btn-error ml-1\" onclick=\"SetDeleteMessage(" + row.ID + ", '');\">Delete</button></td>"));
+                $("#dati").append(tr);
+            });
+        }).fail(function(data) {
+            ShowError(data);
+        });
+    }
+    function Edit(id) {
+        $('#edit-dialog').show();
+        SetSelectedRecord(id);
+        $("#name").val(selectedRow.Name);
+        $("#isbackend").prop("checked", selectedRow.IsBackEnd);
+        selectedRow.Permissions.forEach((p) => {
+            $("#" + p.UserType.Description).prop("checked", p.Enabled);
+        });
+        selectedRow.IsNew = false;
+    }
+    function CloseForm() {
+        $("#edit-component")[0].reset();
+        $('#edit-dialog').hide();
+        selectedRow = null;
+    }
+    function Save() {
+        //Setting the new object
+        let component = {};
+        if(selectedRow != null) {
+            component = selectedRow;
+            let count = 0;
+            $('#usertypes-checkbox').children().each((c) => {
+                if($($('#usertypes-checkbox').children()[c]).is("input")) {
+                    component.Permissions[count].UserType.Description = $($('#usertypes-checkbox').children()[c]).attr('id')
+                    component.Permissions[count].Enabled = $($('#usertypes-checkbox').children()[c]).prop("checked");
+                    count++;
+                }
+            });
+        }
+        else {
+            //Istantiate new structure for saving the route
+            component.Permissions = [];
+            $('#usertypes-checkbox').children().each((c) => {
+                if($($('#usertypes-checkbox').children()[c]).is("input")) {
+                    component.Permissions[component.Permissions.length] = { UserType: { Description: $($('#usertypes-checkbox').children()[c]).attr('id') }, Enabled: $($('#usertypes-checkbox').children()[c]).prop("checked") };
+                }
+            });
+        }
+        component.Package = $('#name').val();
+        component.Func = $('#isbackend').val();
+        let func = "addcomponent";
+        if((selectedRow != null) &&(selectedRow.IsNew != null) && (!selectedRow.IsNew)) {
+            func = "updatecomponent";
+        }
+        Post("component", func, route).done(function(data) {
+            LoadComponents();
+        }).fail(function(data) {
+            ShowError(data);
+        });
+        $('#edit-dialog').hide();
+    }
+    function OnDelete() {
+        $('#delete-dialog').hide();
+        Delete("component", "deletecomponent", $("#delete-dialog-button").attr("refer-id")).done(function(data) {
+            LoadComponents();
+        }).fail(function(data) {
+            ShowError(data);
+        });
+    }
+    function OpenDeleteDialog(id) {
+        SetSelectedRecord(id);
+    }
+    function SetSelectedRecord(id) {
+        rows.forEach((row) => {
+            if(row.ID == id) {
+                selectedRow = row;
+                return;
+            }
+        });
+    }
+</script>

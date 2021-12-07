@@ -54,6 +54,15 @@ func (m Menu) UpdatePermission() error {
 
 //Delete a route
 func Delete(id int64) error {
+	m, err := GetMenuFromID(id)
+	if err != nil {
+		return err
+	}
+	//Delete all permission so cleans the routepermission table
+	for i, _ := range m.Permissions {
+		m.Permissions[i].Enabled = false
+	}
+	m.Update()
 	return DB.Delete("menus", id)
 }
 

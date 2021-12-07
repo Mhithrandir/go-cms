@@ -24,7 +24,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	case "updatemenu":
 		UpdateMenu(request)
 	default:
-		commons.NotFound(request)
+		errorpages.NotFound(request)
 	}
 }
 
@@ -45,7 +45,7 @@ func GetMenu(request customrequest.CustomRequest) {
 
 	result, err := LoadMenu(request.Parameters["menuName"], request.Claims.IDUserType, -1)
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, result, 0, 0)
@@ -71,7 +71,7 @@ func GetPlainMenu(request customrequest.CustomRequest) {
 		page, err = strconv.Atoi(val)
 		if err != nil {
 			logs.Save("users", "LoadUsers", "Parameter page not valid", logs.Error, err.Error())
-			commons.BadRequest(request, err)
+			errorpages.BadRequest(request, err.Error())
 			return
 		}
 	} else {
@@ -84,13 +84,13 @@ func GetPlainMenu(request customrequest.CustomRequest) {
 	}
 	result, err := LoadPlainMenu(page, _config.Pagination)
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
 	count, err := CountMenu()
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
@@ -120,17 +120,17 @@ func AddMenu(request customrequest.CustomRequest) {
 
 	exist, err := menuJSON.Exist()
 	if exist && err == nil {
-		commons.BadRequest(request, "Menu already exist")
+		errorpages.BadRequest(request, "Menu already exist")
 		return
 	} else if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	menuJSON.IDInsertUser = request.Claims.IDUser
 	menuJSON.IDEditUser = request.Claims.IDUser
 	err = menuJSON.Add()
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, true, 0, 0)
@@ -159,16 +159,16 @@ func UpdateMenu(request customrequest.CustomRequest) {
 
 	exist, err := menuJSON.Exist()
 	if !exist && err == nil {
-		commons.BadRequest(request, "Menu not exist")
+		errorpages.BadRequest(request, "Menu not exist")
 		return
 	} else if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
 	err = menuJSON.Update()
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, true, 0, 0)
@@ -192,13 +192,13 @@ func DeleteMenu(request customrequest.CustomRequest) {
 	id, err := strconv.Atoi(request.Parameters["ID"])
 	if err != nil {
 		logs.Save("menu", "DeleteMenu", "Parameter id not valid", logs.Error, err.Error())
-		commons.BadRequest(request, err)
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
 	err = Delete(int64(id))
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, true, 0, 0)

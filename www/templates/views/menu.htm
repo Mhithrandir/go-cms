@@ -170,7 +170,7 @@
         menu.Parent = parseInt($('#parent').val());
         let func = "updatemenu";
         if(selectedRow.IsNew) {
-            routeUrl = "addmenu";
+            func = "addmenu";
         }
         Post("menu", func, menu).done(function(data) {
             LoadMenu();

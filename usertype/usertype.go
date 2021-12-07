@@ -18,7 +18,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	case "addusertype":
 		AddUserType(request)
 	default:
-		commons.NotFound(request)
+		errorpages.NotFound(request)
 	}
 }
 
@@ -39,7 +39,7 @@ func GetUserTypes(request customrequest.CustomRequest) {
 
 	result, err := Load()
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 	}
 	commons.Ok(request, result, 0, 0)
 }
@@ -62,13 +62,13 @@ func DeleteUserType(request customrequest.CustomRequest) {
 	id, err := strconv.Atoi(request.Parameters["ID"])
 	if err != nil {
 		logs.Save("usertype", "DeleteUserType", "Parameter id not valid", logs.Error, err.Error())
-		commons.BadRequest(request, err)
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
 	err = Delete(int64(id))
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, true, 0, 0)
@@ -92,23 +92,23 @@ func AddUserType(request customrequest.CustomRequest) {
 	var userTypeJSON UserType
 	err := request.ParserBodyRequest(&userTypeJSON)
 	if err != nil {
-		commons.BadRequest(request, err)
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := userTypeJSON.Exist()
 	if exist && err == nil {
-		commons.BadRequest(request, "UserType already exist")
+		errorpages.BadRequest(request, "UserType already exist")
 		return
 	} else if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	userTypeJSON.IDInsertUser = request.Claims.IDUser
 	userTypeJSON.IDEditUser = request.Claims.IDUser
 	err = userTypeJSON.Add()
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, true, 0, 0)

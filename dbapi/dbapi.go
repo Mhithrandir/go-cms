@@ -16,7 +16,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	case "opentable":
 		OpenTable(request)
 	default:
-		commons.NotFound(request)
+		errorpages.NotFound(request)
 	}
 }
 
@@ -36,7 +36,7 @@ func GetDatabases(request customrequest.CustomRequest) {
 
 	db, err := DB.ScanTable("SHOW DATABASES")
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
@@ -60,7 +60,7 @@ func GetTables(request customrequest.CustomRequest) {
 	dbName := request.Parameters["db"]
 	tables, err := DB.ScanTable("SELECT * FROM information_schema.tables WHERE TABLE_SCHEMA = ?", dbName)
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
@@ -84,7 +84,7 @@ func OpenTable(request customrequest.CustomRequest) {
 	name := request.Parameters["name"]
 	records, err := DB.ScanTable("SELECT * FROM " + name + " LIMIT 100")
 	if err != nil {
-		commons.InternalServerError(request, err)
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 

@@ -2,6 +2,7 @@ package page
 
 import (
 	"cms/commons"
+	"cms/component"
 	"cms/customrequest"
 	"cms/errorpages"
 	"cms/menu"
@@ -11,8 +12,8 @@ import (
 //ParseRoute handle the func specified in the apirequest
 func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
-	case "home":
-		home(request)
+	// case "home":
+	// 	home(request)
 	case "login":
 		login(request)
 	case "logout":
@@ -29,8 +30,10 @@ func ParseRoute(request customrequest.CustomRequest) {
 		db(request)
 	case "register":
 		register(request)
+	case "componenteditor":
+		componenteditor(request)
 	default:
-		errorpages.NotFound(request)
+		staticContent(request)
 	}
 }
 
@@ -90,20 +93,20 @@ func common(request customrequest.CustomRequest, pathTemplate string, params map
 	}
 }
 
-func home(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
+// func home(request customrequest.CustomRequest) {
+// 	switch commons.CommonLoad(request, request.IsBakcEnd) {
+// 	case commons.Options:
+// 		return
+// 	case commons.UnAuthorized:
+// 		errorpages.Unauthorized(request)
+// 		return
+// 	case commons.Error:
+// 		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
+// 		return
+// 	}
 
-	common(request, "www/templates/views/home.htm", nil)
-}
+// 	common(request, "www/templates/views/home.htm", nil)
+// }
 
 func login(request customrequest.CustomRequest) {
 	switch commons.CommonLoad(request, false) {
@@ -237,4 +240,51 @@ func register(request customrequest.CustomRequest) {
 	}
 
 	common(request, "www/templates/views/register.htm", nil)
+}
+
+func componenteditor(request customrequest.CustomRequest) {
+	switch commons.CommonLoad(request, request.IsBakcEnd) {
+	case commons.Options:
+		return
+	case commons.UnAuthorized:
+		errorpages.Unauthorized(request)
+		return
+	case commons.Error:
+		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
+		return
+	}
+
+	common(request, "www/templates/views/componenteditor.htm", nil)
+}
+
+func staticContent(request customrequest.CustomRequest) {
+	switch commons.CommonLoad(request, request.IsBakcEnd) {
+	case commons.Options:
+		return
+	case commons.UnAuthorized:
+		errorpages.Unauthorized(request)
+		return
+	case commons.Error:
+		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
+		return
+	}
+
+	//Set the database variable
+	component.DB = request.DB
+
+	result, err := component.GetComponent(request.Func, request.Claims.IDUserType, request.IsBakcEnd)
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+
+	if len(result) == 0 {
+		errorpages.NotFound(request)
+		return
+	}
+
+	params := make(map[string]interface{})
+	params["Content"] = result[0].Content
+
+	common(request, "www/templates/system/static.htm", params)
 }
