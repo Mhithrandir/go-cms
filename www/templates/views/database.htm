@@ -5,12 +5,29 @@
     </li>
     {{end}}
 </ul>
+<script src="scripts/monaco-editor/min/vs/loader.js"></script>
+<script src="scripts/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+<script src="scripts/monaco-editor/min/vs/editor/editor.main.js"></script>
+<link rel="stylesheet" data-name="vs/editor/editor.main" href="scripts/monaco-editor/min/vs/editor/editor.main.css" />
+<style>
+    #content-editor {
+        height: 200px;
+        /* width: 500px; */
+        margin-right: 10px;
+        position: relative;
+        margin-bottom: 100px;
+        border: 1px solid gray;
+    }
+</style>
 <div>
     <h2>Database</h2>
     <div style="display: grid; grid-template-columns: 1fr 9fr;column-gap: 15px;">
         <ul id="dati"></ul>
         <div id="table">
-            <button class="btn-warning">SQL</button>
+            <button class="btn-warning" onclick="$('#content-editor').toggle();">SQL</button>
+            <div id="content-editor" class="mt-1">
+                
+            </div>
             <div id="table-content" class="mt-1">
                 
             </div>
@@ -39,6 +56,17 @@
         Get("../api/dbapi/getdatabases", 0).done(function(data) {
             data.Data.forEach((db) => {
                 $("#dati").append($("<li><header onclick='Toggle(this, \"" + atob(db.Database) + "\");'><span class='icon-expander'>:.</span><span class='ml-1'>" + atob(db.Database) + "<span></header></li>"));
+            });
+        });
+        $("#content-editor").hide();
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('content-editor'), {
+                // value: [selectedRow.Content].join('\n'),
+                language: 'sql',
+                theme: 'vs-dark',
+                roundedSelection: true,
+                automaticLayout: 'true',
+                glyphMargin: true
             });
         });
     });
