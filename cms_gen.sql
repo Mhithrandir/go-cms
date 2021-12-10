@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1:3306
--- Creato il: Dic 06, 2021 alle 11:37
+-- Creato il: Dic 10, 2021 alle 12:09
 -- Versione del server: 8.0.17
 -- Versione PHP: 7.4.9
 
@@ -24,13 +24,14 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
--- Struttura della tabella `componentpermissions`
+-- Struttura della tabella `component`
 --
 
-DROP TABLE IF EXISTS `componentpermissions`;
-CREATE TABLE IF NOT EXISTS `componentpermissions` (
-  `IDComponent` int(11) NOT NULL,
-  `IDUserType` int(11) NOT NULL,
+DROP TABLE IF EXISTS `component`;
+CREATE TABLE IF NOT EXISTS `component` (
+  `Name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
+  `Content` text COLLATE utf8mb4_unicode_ci NOT NULL,
+  `IDRoute` int(11) NOT NULL,
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `InsertDate` datetime NOT NULL,
   `IDInsertUser` int(11) NOT NULL,
@@ -40,39 +41,40 @@ CREATE TABLE IF NOT EXISTS `componentpermissions` (
 ) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dump dei dati per la tabella `componentpermissions`
+-- Dump dei dati per la tabella `component`
 --
 
-INSERT INTO `componentpermissions` (`IDComponent`, `IDUserType`, `ID`, `InsertDate`, `IDInsertUser`, `EditDate`, `IDEditUser`) VALUES
-(1, 99, 1, '2021-11-20 12:40:10', 1, '2021-11-20 12:40:10', 1),
-(2, 99, 2, '2021-11-21 13:54:21', 1, '2021-11-21 13:54:21', 1);
+INSERT INTO `component` (`Name`, `Content`, `IDRoute`, `ID`, `InsertDate`, `IDInsertUser`, `EditDate`, `IDEditUser`) VALUES
+('Home', '', 265, 1, '2021-12-07 10:53:12', 1, '2021-12-10 12:43:04', 1),
+('Backend Home', '<h2>This is the homepage for the Backend of the website</h2>', 261, 2, '2021-12-08 16:28:14', 1, '2021-12-08 16:53:24', 1);
 
 -- --------------------------------------------------------
 
 --
--- Struttura della tabella `components`
+-- Struttura della tabella `componentpermission`
 --
 
-DROP TABLE IF EXISTS `components`;
-CREATE TABLE IF NOT EXISTS `components` (
-  `Name` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `QueryName` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `Content` text COLLATE utf8mb4_unicode_ci NOT NULL,
-  `ID` int(11) NOT NULL AUTO_INCREMENT,
+DROP TABLE IF EXISTS `componentpermission`;
+CREATE TABLE IF NOT EXISTS `componentpermission` (
+  `IDComponent` int(11) NOT NULL,
+  `IDUserType` int(11) NOT NULL,
+  `ID` int(11) NOT NULL,
   `InsertDate` datetime NOT NULL,
   `IDInsertUser` int(11) NOT NULL,
   `EditDate` datetime NOT NULL,
-  `IDEditUser` int(11) NOT NULL,
-  PRIMARY KEY (`ID`)
-) ENGINE=MyISAM AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `IDEditUser` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
--- Dump dei dati per la tabella `components`
+-- Dump dei dati per la tabella `componentpermission`
 --
 
-INSERT INTO `components` (`Name`, `QueryName`, `Content`, `ID`, `InsertDate`, `IDInsertUser`, `EditDate`, `IDEditUser`) VALUES
-('fe-home', '', '<h1>Homepage</h1><go-component Name=\"main-menu\"/><p>Prova</p>', 1, '2021-11-20 12:39:01', 1, '2021-11-20 12:39:01', 1),
-('main-menu', 'MenuPrinc', '<ul><li>this is a menu</li><li>{{ . }}</li></ul>', 2, '2021-11-21 13:51:19', 1, '2021-11-21 13:51:19', 1);
+INSERT INTO `componentpermission` (`IDComponent`, `IDUserType`, `ID`, `InsertDate`, `IDInsertUser`, `EditDate`, `IDEditUser`) VALUES
+(1, 1, 0, '2021-12-07 11:11:19', 1, '2021-12-07 11:11:19', 1),
+(1, 99, 0, '2021-12-07 11:11:19', 1, '2021-12-07 11:11:19', 1),
+(2, 1, 0, '2021-12-08 16:28:32', 1, '2021-12-08 16:28:32', 1),
+(1, 2, 0, '2021-12-10 12:43:04', 1, '2021-12-10 12:43:04', 1),
+(1, 3, 0, '2021-12-10 12:43:04', 1, '2021-12-10 12:43:04', 1);
 
 -- --------------------------------------------------------
 
@@ -90,7 +92,7 @@ CREATE TABLE IF NOT EXISTS `menupermission` (
   `EditDate` datetime NOT NULL,
   `IDEditUser` int(11) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=MyISAM AUTO_INCREMENT=346 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=348 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dump dei dati per la tabella `menupermission`
@@ -125,6 +127,7 @@ INSERT INTO `menupermission` (`IDMenu`, `IDUserType`, `ID`, `InsertDate`, `IDIns
 (3, 1, 32, '2021-05-13 19:53:55', 1, '2021-05-13 19:53:55', 1),
 (41, 2, 274, '2021-05-15 11:12:29', 1, '2021-05-15 11:12:29', 1),
 (1, 1, 30, '2021-05-13 19:49:53', 1, '2021-05-13 19:49:53', 1),
+(61, 1, 347, '2021-12-07 11:26:25', 1, '2021-12-07 11:26:25', 1),
 (58, 1, 344, '2021-12-05 21:13:23', 1, '2021-12-05 21:13:23', 1),
 (18, 1, 60, '2021-05-13 19:57:40', 1, '2021-05-13 19:57:40', 1),
 (18, 102, 61, '2021-05-13 19:57:40', 1, '2021-05-13 19:57:40', 1),
@@ -395,7 +398,7 @@ CREATE TABLE IF NOT EXISTS `menus` (
   `EditDate` datetime NOT NULL,
   `IDEditUser` int(11) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=MyISAM AUTO_INCREMENT=61 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=62 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dump dei dati per la tabella `menus`
@@ -415,7 +418,8 @@ INSERT INTO `menus` (`MenuName`, `Name`, `Parent`, `Path`, `MenuOrder`, `ID`, `I
 ('MainMenuFe', 'Register', -1, '../register', 99, 51, '2021-08-01 16:17:28', 1, '2021-12-06 09:45:54', 1),
 ('MainMenuFe', 'Home', -1, 'home', 0, 57, '2021-12-05 21:11:55', 1, '2021-12-05 21:12:19', 1),
 ('MainMenuFe', 'Backend', -1, '../be/home', 0, 58, '2021-12-05 21:13:14', 1, '2021-12-05 21:13:23', 1),
-('MainMenuBe', 'FrontEnd', -1, '../home', 90, 59, '2021-12-06 09:16:33', 1, '2021-12-06 09:16:54', 1);
+('MainMenuBe', 'FrontEnd', -1, '../home', 90, 59, '2021-12-06 09:16:33', 1, '2021-12-06 09:16:54', 1),
+('MainMenuBe', 'Component Editor', -1, '../be/componenteditor', 30, 61, '2021-12-07 11:26:08', 1, '2021-12-07 11:27:18', 1);
 
 -- --------------------------------------------------------
 
@@ -434,7 +438,7 @@ CREATE TABLE IF NOT EXISTS `routes` (
   `EditDate` datetime NOT NULL,
   `IDEditUser` int(11) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=MyISAM AUTO_INCREMENT=266 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=267 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dump dei dati per la tabella `routes`
@@ -451,7 +455,8 @@ INSERT INTO `routes` (`Package`, `Func`, `Type`, `ID`, `InsertDate`, `IDInsertUs
 ('route', '*', 'api', 236, '2021-08-01 16:28:09', 1, '2021-08-01 16:28:13', 1),
 ('user', '*', 'api', 237, '2021-08-01 16:28:52', 1, '2021-08-01 16:28:56', 1),
 ('menu', '*', 'api', 235, '2021-08-01 16:27:30', 1, '2021-08-01 16:27:34', 1),
-('page', 'home', 'fe', 265, '2021-11-27 11:55:26', 1, '2021-11-27 11:55:50', 1);
+('page', 'home', 'fe', 265, '2021-11-27 11:55:26', 1, '2021-11-27 11:55:50', 1),
+('component', '*', 'api', 266, '2021-12-07 15:07:00', 1, '2021-12-07 15:10:36', 1);
 
 -- --------------------------------------------------------
 
@@ -469,13 +474,14 @@ CREATE TABLE IF NOT EXISTS `routespermission` (
   `EditDate` datetime NOT NULL,
   `IDEditUser` int(11) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=MyISAM AUTO_INCREMENT=108 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=109 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Dump dei dati per la tabella `routespermission`
 --
 
 INSERT INTO `routespermission` (`IDRoute`, `IDUserType`, `ID`, `InsertDate`, `IDInsertUser`, `EditDate`, `IDEditUser`) VALUES
+(266, 1, 108, '2021-12-07 15:10:11', 1, '2021-12-07 15:10:11', 1),
 (264, 1, 107, '2021-11-27 17:34:27', 1, '2021-11-27 17:34:27', 1),
 (1, 1, 106, '2021-11-27 15:28:37', 1, '2021-11-27 15:28:37', 1),
 (1, 1, 105, '2021-11-27 15:28:19', 1, '2021-11-27 15:28:19', 1),
@@ -522,7 +528,7 @@ CREATE TABLE IF NOT EXISTS `storedqueries` (
   `EditDate` datetime NOT NULL,
   `IDEditUser` int(11) NOT NULL,
   PRIMARY KEY (`ID`)
-) ENGINE=MyISAM AUTO_INCREMENT=24 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=MyISAM AUTO_INCREMENT=30 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 --
 -- Dump dei dati per la tabella `storedqueries`
@@ -532,24 +538,26 @@ INSERT INTO `storedqueries` (`Name`, `Command`, `ID`, `InsertDate`, `IDInsertUse
 ('MenuPrinc', 'SELECT DISTINCT Menus.MenuName, Menus.Name, Menus.Parent, Menus.Path, Menus.MenuOrder, Menus.ID, Menus.InsertDate, Menus.IDInsertUser, Menus.EditDate, Menus.IDEditUser FROM menus INNER JOIN menupermission ON menus.ID = menupermission.IDMenu INNER JOIN UserTypes ON menupermission.IDUserType = UserTypes.ID WHERE menupermission.IDUserType = ? AND menus.MenuName = ? AND menus.Parent = ? ORDER BY menus.MenuOrder', 1, '2021-08-28 11:31:36', 1, '2021-08-28 11:31:36', 1),
 ('RoutePrinc', 'SELECT Routes.Package, Routes.Func, Routes.Type, Routes.ID, Routes.InsertDate, Routes.IDInsertUser, Routes.EditDate, Routes.IDEditUser FROM Routes', 4, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('UserPrinc', 'SELECT Users.Username, Users.Password, Users.LastLogin, Users.DatePassword, Users.PasswordDuration, Users.IDUserType, UserTypes.Description AS UserTypeDescription, UserTypes.ID AS UserTypeID, UserTypes.InsertDate AS UserTypeInsertDate, UserTypes.IDInsertUser AS UserTypeInsertUser, UserTypes.EditDate AS UserTypeEditDate, UserTypes.IDEditUser AS UserTypeEditUser, Users.CodeResetPassword, Users.ID, Users.InsertDate, Users.IDInsertUser, Users.EditDate, Users.IDEditUser FROM Users INNER JOIN UserTypes ON Users.IDUserType = UserTypes.ID', 3, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
+('GetComponent', 'SELECT component.Name, component.Content, component.IDRoute, component.ID, component.InsertDate, component.IDInsertUser, component.EditDate, component.IDEditUser FROM component JOIN componentpermission ON component.ID = componentpermission.IDComponent  JOIN routes ON component.IDRoute = routes.ID WHERE CONCAT(routes.Type, \'/\', routes.Func) = ? AND componentpermission.IDUserType = ?', 24, '2021-12-07 10:41:23', 1, '2021-12-07 10:41:23', 1),
 ('CheckRoute', 'SELECT routes.Package, routes.Func FROM routes INNER JOIN routespermission ON routes.ID = routespermission.IDRoute INNER JOIN UserTypes ON routespermission.IDUserType = UserTypes.ID WHERE (routespermission.IDUserType = ? AND routes.Package = ? AND (routes.Func = ? OR routes.Func = \'*\') AND (routes.Type = ? OR routes.Type = \'*\')) LIMIT 1', 5, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('UserTypePrinc', 'SELECT Description, ID, InsertDate, IDInsertUser, EditDate, IDEditUser FROM UserTypes', 6, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('RoutePermissionPrinc', 'SELECT RoutesPermission.IDRoute, RoutesPermission.IDUserType, UserTypes.Description, UserTypes.ID, UserTypes.InsertDate, UserTypes.IDInsertUser, UserTypes.EditDate, UserTypes.IDEditUser FROM RoutesPermission LEFT JOIN UserTypes ON RoutesPermission.IDUserType = UserTypes.ID WHERE RoutesPermission.IDRoute = ?', 7, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('MenuPlain', 'SELECT Menus.MenuName, Menus.Name, Menus.Parent, Menus.Path, Menus.MenuOrder, Menus.ID, Menus.InsertDate, Menus.IDInsertUser, Menus.EditDate, Menus.IDEditUser FROM Menus LIMIT ?, ?', 8, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('MenuPermissionPrinc', 'SELECT MenuPermission.IDMenu, MenuPermission.IDUserType, UserTypes.Description, UserTypes.ID, UserTypes.InsertDate, UserTypes.IDInsertUser, UserTypes.EditDate, UserTypes.IDEditUser FROM MenuPermission LEFT JOIN UserTypes ON MenuPermission.IDUserType = UserTypes.ID WHERE MenuPermission.IDMenu = ?', 9, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
-('ComponentPrinc', 'SELECT Component.Name, Component.Url, Component.Code, Component.Query, ComponentType.ID as TypeId, ComponentType.Description, Component.ID, Component.InsertDate, Component.IDInsertUser, Component.EditDate, Component.IDEditUser FROM Component JOIN ComponentType ON Component.IDType = ComponentType.ID LEFT JOIN ComponentChildren ON Component.ID = ComponentChildren.IDComponent', 10, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('AddMenu', 'INSERT INTO Menus(MenuName, Name, Parent, Path, MenuOrder, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES(?, ?, ?, ?, ?, NOW(), ?, NOW(), ?)', 11, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('AddRoute', 'INSERT INTO Routes(Package, Func, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES(?, ?, NOW(), ?, NOW(), ?)', 12, '0000-00-00 00:00:00', 0, '0000-00-00 00:00:00', 0),
 ('AddUser', 'INSERT INTO Users (Username, Password, LastLogin, DatePassword, PasswordDuration, IDUserType, CodeResetPassword, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES (?, ?, NOW(), NOW(), ?, ?, ?, NOW(), ?, NOW(), ?)', 13, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('AddUserType', 'INSERT INTO UserTypes(Description, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES(?, NOW(), ?, NOW(), ?)', 14, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
-('ContComponent', 'SELECT COUNT(*) as Conteggio FROM Component JOIN ComponentType ON Component.IDType = ComponentType.ID LEFT JOIN ComponentChildren ON Component.ID = ComponentChildren.IDComponent', 15, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('CountMenuPlain', 'SELECT COUNT(*) as Conteggio FROM Menus', 16, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('CountUser', 'SELECT COUNT(*) as Conteggio FROM Users INNER JOIN UserTypes ON Users.IDUserType = UserTypes.ID', 18, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
 ('CountRoute', 'SELECT COUNT(*) as Conteggio FROM Routes LEFT JOIN RoutesPermission ON Routes.ID = RoutesPermission.IDRoute LEFT JOIN UserTypes ON RoutesPermission.IDUserType = UserTypes.ID', 17, '2021-03-20 21:04:03', 1, '2021-03-20 21:04:03', 1),
-('checkComponentExist', 'SELECT * FROM Components WHERE Name = ? LIMIT 1', 20, '2021-11-20 12:42:00', 1, '2021-11-20 12:42:00', 1),
-('getComponent', 'SELECT components.Name, components.QueryName, components.Content, components.ID, components.InsertDate, components.IDInsertUser, components.EditDate, components.IDEditUser FROM components JOIN componentpermissions on components.ID = componentpermissions.IDComponent WHERE componentpermissions.IDUserType = ? AND components.Name = ?', 21, '2021-11-21 12:56:23', 1, '2021-11-21 12:56:23', 1),
+('GetComponentFromID', 'SELECT component.Name, component.Content, component.IDRoute, component.ID, component.InsertDate, component.IDInsertUser, component.EditDate, component.IDEditUser FROM component WHERE component.ID = ? LIMIT 1', 28, '2021-12-07 10:59:07', 1, '2021-12-07 10:59:07', 1),
+('LoadComponents', 'SELECT component.Name, component.Content, component.IDRoute, component.ID, component.InsertDate, component.IDInsertUser, component.EditDate, component.IDEditUser FROM component LIMIT ?, ?', 27, '2021-12-07 14:11:30', 1, '2021-12-07 14:11:30', 1),
 ('GetRoute', 'SELECT Routes.Package, Routes.Func, Routes.ID, Routes.InsertDate, Routes.IDInsertUser, Routes.EditDate, Routes.IDEditUser FROM Routes LEFT JOIN RoutesPermission ON Routes.ID = RoutesPermission.IDRoute LEFT JOIN UserTypes ON RoutesPermission.IDUserType = UserTypes.ID WHERE routes.Package = ? AND routes.Func = ? LIMIT 1', 22, '2021-11-27 10:41:59', 1, '2021-11-27 10:41:59', 1),
-('GetRouteFromID', 'SELECT Routes.Package, Routes.Func, Routes.ID, Routes.InsertDate, Routes.IDInsertUser, Routes.EditDate, Routes.IDEditUser FROM Routes LEFT JOIN RoutesPermission ON Routes.ID = RoutesPermission.IDRoute LEFT JOIN UserTypes ON RoutesPermission.IDUserType = UserTypes.ID WHERE routes.ID = ? LIMIT 1', 23, '2021-11-27 11:40:09', 1, '2021-11-27 11:40:09', 1);
+('GetRouteFromID', 'SELECT Routes.Package, Routes.Func, Routes.Type, Routes.ID, Routes.InsertDate, Routes.IDInsertUser, Routes.EditDate, Routes.IDEditUser FROM Routes LEFT JOIN RoutesPermission ON Routes.ID = RoutesPermission.IDRoute LEFT JOIN UserTypes ON RoutesPermission.IDUserType = UserTypes.ID WHERE routes.ID = ? LIMIT 1', 23, '2021-11-27 11:40:09', 1, '2021-11-27 11:40:09', 1),
+('GetComponentPermission', 'SELECT componentpermission.IDComponent, componentpermission.IDUserType, UserTypes.Description, componentpermission.ID, componentpermission.InsertDate, componentpermission.IDInsertUser, componentpermission.EditDate, componentpermission.IDEditUser FROM componentpermission LEFT JOIN UserTypes ON componentpermission.IDUserType = UserTypes.ID WHERE componentpermission.IDComponent = ?', 25, '2021-12-07 10:44:17', 1, '2021-12-07 10:44:17', 1),
+('GetMenuFromID', 'SELECT menus.MenuName, menus.Name, menus.Parent, menus.Path, menus.MenuOrder, menus.ID, menus.InsertDate, menus.IDInsertUser, menus.EditDate, menus.IDEditUser FROM menus WHERE menus.ID = ? LIMIT 1', 26, '2021-12-07 10:59:07', 1, '2021-12-07 10:59:07', 1),
+('AddComponent', 'INSERT INTO component(Name, Content, IDRoute, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES (?,?,?,NOW(),?,NOW(),?)', 29, '2021-12-08 16:24:52', 1, '2021-12-08 16:24:52', 1);
 
 -- --------------------------------------------------------
 
@@ -579,7 +587,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 --
 
 INSERT INTO `users` (`Username`, `Password`, `LastLogin`, `DatePassword`, `PasswordDuration`, `IDUserType`, `CodeResetPassword`, `ID`, `InsertDate`, `IDInsertUser`, `EditDate`, `IDEditUser`) VALUES
-('ghimdalas@gmail.com', '16a7d7a86556c85a393eb602549efe75', '2021-08-12 09:53:39', '2021-09-03 19:03:03', -1, 1, '', 1, '2020-12-28 16:34:51', 1, '2021-12-06 11:57:31', 1);
+('ghimdalas@gmail.com', '16a7d7a86556c85a393eb602549efe75', '2021-08-12 09:53:39', '2021-09-03 19:03:03', -1, 1, '', 1, '2020-12-28 16:34:51', 1, '2021-12-07 11:22:08', 1);
 
 -- --------------------------------------------------------
 
