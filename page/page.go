@@ -272,7 +272,13 @@ func staticContent(request customrequest.CustomRequest) {
 	//Set the database variable
 	component.DB = request.DB
 
-	result, err := component.GetComponent(request.Func, request.Claims.IDUserType, request.IsBakcEnd)
+	route := request.Func
+	if request.IsBakcEnd {
+		route = "be/" + request.Func
+	} else {
+		route = "fe/" + request.Func
+	}
+	result, err := component.GetComponent(route, request.Claims.IDUserType)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return

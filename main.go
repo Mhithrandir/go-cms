@@ -70,6 +70,5 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		component.ParseRoute(request)
 	default:
 		errorpages.NotFound(request)
-		break
 	}
 }

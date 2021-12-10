@@ -3,18 +3,19 @@ package component
 import (
 	"cms/commons"
 	"cms/logs"
+	"cms/route"
 	"cms/usertype"
 	"database/sql"
 	"sort"
 )
 
-func GetComponent(name string, idUserType int64, isBackEnd bool) ([]Component, error) {
+func GetComponent(name string, idUserType int64) ([]Component, error) {
 	sql, err := DB.GetQuery("GetComponent")
 	if err != nil {
 		return nil, err
 	}
 
-	reader, err := DB.Reader(sql, name, idUserType, isBackEnd)
+	reader, err := DB.Reader(sql, name, idUserType)
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +28,7 @@ func GetComponent(name string, idUserType int64, isBackEnd bool) ([]Component, e
 	for i, _ := range results {
 		results[i].Permissions, err = results[i].GetPermission()
 		if err != nil {
-			logs.Save("page", "GetComponent", "Error selecting permission", logs.Error, err.Error())
+			logs.Save("component", "GetComponent", "Error selecting permission", logs.Error, err.Error())
 			return nil, err
 		}
 	}
@@ -54,7 +55,7 @@ func LoadComponents(start, end int) ([]Component, error) {
 	for i, _ := range results {
 		results[i].Permissions, err = results[i].GetPermission()
 		if err != nil {
-			logs.Save("page", "LoadComponents", "Error selecting permission", logs.Error, err.Error())
+			logs.Save("component", "LoadComponents", "Error selecting permission", logs.Error, err.Error())
 			return nil, err
 		}
 	}
@@ -122,28 +123,65 @@ func (r Component) CheckComponentPermission(idusertype int64) (bool, error) {
 	return false, nil
 }
 
+func (c Component) Exist() (bool, error) {
+	result, err := DB.ScanTable("SELECT * FROM component WHERE name = ?", c.Name)
+	if err != nil {
+		logs.Save("component", "Exist", "Error checking if component exist", logs.Error, err.Error())
+		return false, err
+	}
+	return (len(result) > 0), nil
+}
+
+func GetComponentFromID(id int64) (Component, error) {
+	sql, err := DB.GetQuery("GetComponentFromID")
+	if err != nil {
+		return Component{}, err
+	}
+	reader, err := DB.Reader(sql, id)
+	if err != nil {
+		return Component{}, err
+	}
+	results, err := read(reader)
+	if err != nil {
+		return Component{}, err
+	}
+	reader.Close()
+
+	for i, r := range results {
+		results[i].Permissions, err = r.GetPermission()
+		if err != nil {
+			return Component{}, err
+		}
+	}
+
+	return results[0], err
+}
+
 func read(reader *sql.Rows) ([]Component, error) {
 	var results []Component
 	for reader.Next() {
 		var record Component
 		var appInsertDate []byte
 		var appEditDate []byte
-		var isBackend []byte
 		err := reader.Scan(&record.Name,
 			&record.Content,
-			&isBackend,
+			&record.IDRoute,
 			&record.ID,
 			&appInsertDate,
 			&record.IDInsertUser,
 			&appEditDate,
 			&record.IDEditUser)
 		if err != nil {
-			logs.Save("page", "read", "Error scanning the record", logs.Error, err.Error())
+			logs.Save("component", "read", "Error scanning the record", logs.Error, err.Error())
 			return nil, err
 		}
 		record.InsertDate, _ = commons.ParseMysqlDateTime(appInsertDate)
 		record.EditDate, _ = commons.ParseMysqlDateTime(appEditDate)
-		record.IsBackEnd = (isBackend[0] == 1)
+		route.DB = DB
+		record.Route, err = route.GetRouteFromID(record.IDRoute)
+		if err != nil {
+			return nil, err
+		}
 		results = append(results, record)
 	}
 	return results, nil
@@ -170,7 +208,7 @@ func readPermission(reader *sql.Rows) ([]ComponentPermission, error) {
 			&appEditDate,
 			&usertypeIDEditUser)
 		if err != nil {
-			logs.Save("page", "readPermission", "Error scanning the record", logs.Error, err.Error())
+			logs.Save("component", "readPermission", "Error scanning the record", logs.Error, err.Error())
 			return nil, err
 		}
 		row.UserType.InsertDate, _ = commons.ParseMysqlDateTime(appInsertDate)

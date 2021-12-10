@@ -15,6 +15,12 @@ func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "getcomponents":
 		GetComponents(request)
+	case "deletecomponent":
+		DeleteComponent(request)
+	case "addcomponent":
+		AddComponent(request)
+	case "updatecomponent":
+		UpdateComponent(request)
 	default:
 		errorpages.NotFound(request)
 	}
@@ -58,4 +64,111 @@ func GetComponents(request customrequest.CustomRequest) {
 		return
 	}
 	commons.Ok(request, result, 0, 0)
+}
+
+//AddComponents add a component in the database
+func AddComponent(request customrequest.CustomRequest) {
+	switch commons.CommonLoad(request, true) {
+	case commons.Options:
+		return
+	case commons.UnAuthorized:
+		errorpages.Unauthorized(request)
+		return
+	case commons.Error:
+		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
+		return
+	}
+
+	DB = request.DB
+
+	var componentJSON Component
+	err := request.ParserBodyRequest(&componentJSON)
+	if err != nil {
+		return
+	}
+
+	exist, err := componentJSON.Exist()
+	if exist && err == nil {
+		errorpages.BadRequest(request, "Component already exist")
+		return
+	} else if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+	componentJSON.IDInsertUser = request.Claims.IDUser
+	componentJSON.IDEditUser = request.Claims.IDUser
+	err = componentJSON.Add()
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+	commons.Ok(request, true, 0, 0)
+}
+
+func UpdateComponent(request customrequest.CustomRequest) {
+	switch commons.CommonLoad(request, true) {
+	case commons.Options:
+		return
+	case commons.UnAuthorized:
+		errorpages.Unauthorized(request)
+		return
+	case commons.Error:
+		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
+		return
+	}
+
+	DB = request.DB
+
+	var componentJSON Component
+	err := request.ParserBodyRequest(&componentJSON)
+	if err != nil {
+		return
+	}
+
+	exist, err := componentJSON.Exist()
+	if !exist && err == nil {
+		errorpages.BadRequest(request, "Component NOT exist")
+		return
+	} else if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+	componentJSON.IDInsertUser = request.Claims.IDUser
+	componentJSON.IDEditUser = request.Claims.IDUser
+	err = componentJSON.Update()
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+	commons.Ok(request, true, 0, 0)
+}
+
+//DeleteComponent delete a component item from database
+func DeleteComponent(request customrequest.CustomRequest) {
+	switch commons.CommonLoad(request, true) {
+	case commons.Options:
+		return
+	case commons.UnAuthorized:
+		errorpages.Unauthorized(request)
+		return
+	case commons.Error:
+		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
+		return
+	}
+
+	DB = request.DB
+
+	id, err := strconv.Atoi(request.Parameters["ID"])
+	if err != nil {
+		logs.Save("component", "DeleteComponent", "Parameter id not valid", logs.Error, err.Error())
+		errorpages.BadRequest(request, err.Error())
+		return
+	}
+
+	err = Delete(int64(id))
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+	commons.Ok(request, true, 0, 0)
 }

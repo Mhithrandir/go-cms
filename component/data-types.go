@@ -2,6 +2,7 @@ package component
 
 import (
 	"cms/database"
+	"cms/route"
 	"cms/usertype"
 )
 
@@ -11,8 +12,9 @@ var DB *database.Database
 type Component struct {
 	Name        string                `json:"Name"`
 	Content     string                `json:"Content"`
-	IsBackEnd   bool                  `json:"IsBackEnd"`
+	IDRoute     int64                 `json:"IDRoute"`
 	Permissions []ComponentPermission `json:"Permissions"`
+	Route       route.Route           `json:"Route"`
 	database.BaseTable
 }
 

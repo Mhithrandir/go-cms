@@ -5,15 +5,29 @@
     </li>
     {{end}}
 </ul>
+<script src="scripts/monaco-editor/min/vs/loader.js"></script>
+<script src="scripts/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
+<script src="scripts/monaco-editor/min/vs/editor/editor.main.js"></script>
+<link rel="stylesheet" data-name="vs/editor/editor.main" href="scripts/monaco-editor/min/vs/editor/editor.main.css" />
+<style>
+    #asd {
+        height: 200px;
+        width: 500px;
+        position: relative;
+        margin-bottom: 100px;
+        border: 1px solid gray;
+    }
+</style>
 <div>
     <h2>Component editor</h2>
     <table id="dati">
         <tr>
             <th>Name</th>
-            <th>IsBacked</th>
+            <th>Route</th>
         </tr>
     </table>
-    <button class="btn mt-1" onclick="Add();">Add menu item</button>
+    <button class="btn mt-1" onclick="Add();">Add component</button>
+    <!-- <div id="asd" class="editor-container"></div> -->
 </div>
 <div class="dialog" id="edit-dialog">
     <div class="body">
@@ -22,8 +36,13 @@
             <form class="layout" id="edit-component">
                 <label for="name">Name</label>
                 <input id="name" class="form-control">
-                <label for="content">Content</label>
-                <textarea id="name" class="form-control"></textarea>
+                <label for="contentComponent">Content</label>
+                <!-- <textarea id="contentComponent" class="form-control" style="min-height: 200px;"></textarea> -->
+                <div id="asd" class="editor-container"></div>
+                <label for="routes">Route</label>
+                <select id="routes" class="form-control">
+                    <option value="-1">No route</option>
+                </select>
                 <label>Permissions:</label>
                 <div id="usertypes-checkbox">
                 </div>
@@ -38,6 +57,7 @@
 <script>
     var userTypes = [];
     var selectedRow;
+    var routes = [];
     $(document).ready(() => {
         $("#edit-dialog").hide();
         Get("../api/usertype/getusertypes", 0).done(function(data) {
@@ -49,7 +69,29 @@
             });
             $("tr").append($("<th>#</th>"));
         });
+        window.setTimeout(() => {
+            Get("../api/route/getroutes?page=0", 0).done(function(data) {
+                routes = data.Data;
+                routes.forEach((r) => {
+                    if((r.Func != "*") && (r.Type != "api")) {
+                        $("#routes").append($("<option value=\"" + r.ID + "\">" + r.Type + "/" + r.Func + "</option>"));
+                    }
+                });
+            });
+        }, 3000)
         LoadComponents();
+        require.config({ paths: { vs: 'scripts/monaco-editor/min/vs' } });
+
+        require(['vs/editor/editor.main'], function () {
+            var editor = monaco.editor.create(document.getElementById('asd'), {
+                // value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
+                language: 'html',
+                theme: 'vs-dark',
+                roundedSelection: true,
+                automaticLayout: 'true',
+                glyphMargin: true
+            });
+        });
     });
     function LoadComponents() {
         while($($("#dati").children()[0]).children().length > 1) {
@@ -60,7 +102,7 @@
             rows.forEach((row) => {
                 var tr = $("<tr></tr>");
                 $(tr).append($("<td>" + row.Name + "</td>"));
-                $(tr).append($("<td>" + row.IsBackEnd + "</td>"));
+                $(tr).append($("<td>" + row.Route.Type + "/" + row.Route.Func + "</td>"));
                 row.Permissions.forEach((p) => {
                     if(p.Enabled) {
                         $(tr).append($("<td>&times;</td>"));
@@ -76,11 +118,17 @@
             ShowError(data);
         });
     }
+    function Add() {
+        $('#edit-dialog').show();
+        selectedRow = {};
+        selectedRow.IsNew = true;
+    }
     function Edit(id) {
         $('#edit-dialog').show();
         SetSelectedRecord(id);
         $("#name").val(selectedRow.Name);
-        $("#isbackend").prop("checked", selectedRow.IsBackEnd);
+        $("#routes").val(selectedRow.IDRoute);
+        $("#contentComponent").val(selectedRow.Content);
         selectedRow.Permissions.forEach((p) => {
             $("#" + p.UserType.Description).prop("checked", p.Enabled);
         });
@@ -94,12 +142,12 @@
     function Save() {
         //Setting the new object
         let component = {};
-        if(selectedRow != null) {
+        if(!selectedRow.IsNew) {
             component = selectedRow;
             let count = 0;
             $('#usertypes-checkbox').children().each((c) => {
                 if($($('#usertypes-checkbox').children()[c]).is("input")) {
-                    component.Permissions[count].UserType.Description = $($('#usertypes-checkbox').children()[c]).attr('id')
+                    component.Permissions[count].UserType.Description = $($('#usertypes-checkbox').children()[c]).attr('id');
                     component.Permissions[count].Enabled = $($('#usertypes-checkbox').children()[c]).prop("checked");
                     count++;
                 }
@@ -114,13 +162,14 @@
                 }
             });
         }
-        component.Package = $('#name').val();
-        component.Func = $('#isbackend').val();
+        component.Name = $('#name').val();
+        component.Content = $('#contentComponent').val();
+        component.IDRoute = parseInt($('#routes').val());
         let func = "addcomponent";
         if((selectedRow != null) &&(selectedRow.IsNew != null) && (!selectedRow.IsNew)) {
             func = "updatecomponent";
         }
-        Post("component", func, route).done(function(data) {
+        Post("component", func, component).done(function(data) {
             LoadComponents();
         }).fail(function(data) {
             ShowError(data);
@@ -146,4 +195,5 @@
             }
         });
     }
+    
 </script>
