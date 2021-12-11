@@ -24,41 +24,28 @@
     <div style="display: grid; grid-template-columns: 1fr 9fr;column-gap: 15px;">
         <ul id="dati"></ul>
         <div id="table">
-            <button class="btn-warning" onclick="$('#content-editor').toggle();">SQL</button>
-            <div id="content-editor" class="mt-1">
-                
+            <button class="btn-warning" onclick="$('#sql-editor').toggle();">SQL</button>
+            <div id="sql-editor">
+                <button class="btn mt-1" onclick="ExecuteSql();">Execute</button>
+                <div id="content-editor" class="mt-1">
+                    
+                </div>
             </div>
             <div id="table-content" class="mt-1">
                 
             </div>
-            <!-- <div id="sql" style="width: 800px; height: 600px; border: 1px solid grey"></div> -->
-
-            <!-- <script
-			src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.5/require.min.js"
-			integrity="sha256-0SGl1PJNDyJwcV5T+weg2zpEMrh7xvlwO4oXgvZCeZk="
-			crossorigin="anonymous"
-		></script> -->
-            <!-- <script>
-                require.config({ paths: { vs: '../node_modules/monaco-editor/min/vs' } });
-
-                require(['vs/editor/editor.main'], function () {
-                    var editor = monaco.editor.create(document.getElementById('sql'), {
-                        value: [''],
-                        language: 'sql'
-                    });
-                });
-            </script> -->
         </div>
     </div>
 </div>
 <script>
+    var editor;
     $(document).ready(() => {
         Get("../api/dbapi/getdatabases", 0).done(function(data) {
             data.Data.forEach((db) => {
                 $("#dati").append($("<li><header onclick='Toggle(this, \"" + atob(db.Database) + "\");'><span class='icon-expander'>:.</span><span class='ml-1'>" + atob(db.Database) + "<span></header></li>"));
             });
         });
-        $("#content-editor").hide();
+        $("#sql-editor").hide();
         require(['vs/editor/editor.main'], function () {
             editor = monaco.editor.create(document.getElementById('content-editor'), {
                 // value: [selectedRow.Content].join('\n'),
@@ -69,6 +56,7 @@
                 glyphMargin: true
             });
         });
+        require.config({ paths: { vs: 'scripts/monaco-editor/min/vs' } });
     });
     function Toggle(element, name) {
         $($(element).children()[0]).toggleClass("icon-expander");
@@ -104,6 +92,15 @@
                 $(table).append($(tr));
             });
             $("#table-content").append($(table));
+        });
+    }
+    function ExecuteSql() {
+        let data = { "sql": editor.getValue() };
+        Post("dbapi", "execute", data).done(function(data) {
+            console.log(data);
+            // data.Data.forEach((db) => {
+            //     $("#dati").append($("<li><header onclick='Toggle(this, \"" + atob(db.Database) + "\");'><span class='icon-expander'>:.</span><span class='ml-1'>" + atob(db.Database) + "<span></header></li>"));
+            // });
         });
     }
 </script>

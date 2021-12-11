@@ -15,6 +15,8 @@ func ParseRoute(request customrequest.CustomRequest) {
 		GetTables(request)
 	case "opentable":
 		OpenTable(request)
+	case "execute":
+		Execute(request)
 	default:
 		errorpages.NotFound(request)
 	}
@@ -83,6 +85,36 @@ func OpenTable(request customrequest.CustomRequest) {
 
 	name := request.Parameters["name"]
 	records, err := DB.ScanTable("SELECT * FROM " + name + " LIMIT 100")
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+
+	commons.Ok(request, records, 0, 0)
+}
+
+func Execute(request customrequest.CustomRequest) {
+	switch commons.CommonLoad(request, true) {
+	case commons.Options:
+		return
+	case commons.UnAuthorized:
+		errorpages.Unauthorized(request)
+		return
+	case commons.Error:
+		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
+		return
+	}
+
+	DB = request.DB
+
+	var sql SqlArguments
+	err := request.ParserBodyRequest(&sql)
+	if err != nil {
+		errorpages.BadRequest(request, "Error reading sql")
+		return
+	}
+
+	records, err := DB.ScanTable(sql.Sql)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
