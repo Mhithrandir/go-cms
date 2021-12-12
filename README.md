@@ -35,7 +35,6 @@ Here a short description of all packages:
 - VerifyPassword check if the password is correct
 - SendMail send registration mail
 - SetHeaders set headers for api response
-- handle commons response error (404, 500,...)
 
 ### configuration
 LoadConfiguration, SaveConfiguration handle the config file
@@ -45,7 +44,7 @@ This package is responsable to parse all request to the server and istantiate a 
 - New parse a new request
 - GetPath return url path
 - GetMethod return method of the request
-- CheckPermission check if user has permission to open this url
+- CheckPermission check if user has permission to open this url (or invoke this api)
 - VerifyJwsToken check the validity of jws token
 - ParserBodyRequest retrieve a body request (usually a POST request)
  
@@ -74,7 +73,7 @@ Handle all api request for interact with the database
 - OpenTable return all data from a specified table
 
 ### errorpages
-Handle all standard errors pages
+Handle all standard errors pages (or error response if request is a api call)
 
 ### logs
 Handle the application log
@@ -87,7 +86,6 @@ Handle all api request for the menu table
 - AddMenu add a menu item in the database
 - UpdateMenu update a menu item in the database
 - DeleteMenu delete a menu item in the database
-<<<<<<< HEAD
 
 ### page
 Handle the pages of the website
@@ -138,16 +136,17 @@ the template contains:
 - views all template handled in "page" package
 
 ### simple explanation
-every url must be mapped in the route table, so every user has it's usertype, so you can set specific permission for specific type of user (you can create any different type of usertype). And every menu item in the same way must be setted for the specific usertype
+every url must be mapped in the route table. every user has it's usertype and the admin can set specific permission for specific type of user (you can create any different type of usertype).
+Every other struct that need it (Menu, Component, ...) must refer to a specific Route
 
 the database contains these tables:
 - menus contains all menu items
-- menupermission specific witch permission has a menu item (every item can have more than 1 permission)
 - routes contains all url handled by the website (*Attention routes can handled wildcards with "\*"*)
 - routespermission specific witch permission has a route item (every item can have more than 1 permission)
 - storedqueries the queryes used by the code
 - users contains all users registered in the website
 - usertypes contains all type of user
+- components contains all static components refered at a specific route
 
 ### menus
 - MenuName a field to group all menu items in a specific menu
@@ -156,15 +155,12 @@ the database contains these tables:
 - MenuOrder the order to print the menu
 - *system fields*
 
-### menupermission
-- IDMenu external key for table menu
-- IDUserType external key for table usertype
-- *system fields*
-
 ### routes
 - Package the name of the package
 - Func the name of the func
 - Type a string field, can contain "api", "be", "fe"
+- Path a string not present in the database that is calculated at runtime based on the Route fields
+- Methods a string that contains all method allowed (GET, POST, DELETE, ....)
 - *system fields*
 
 ### routepermission
@@ -173,7 +169,7 @@ the database contains these tables:
 - *system fields*
 
 ### storedqueries
-- Name name of the stored query
+- Name of the stored query
 - Command sql command
 - *system fields*
 
@@ -181,7 +177,7 @@ the database contains these tables:
 - Username
 - Password crypted with md5
 - LastLogin
-- DatePassword last time the password was chenged (or created)
+- DatePassword last time the password was changed (or created)
 - PasswordDuration (in days) the amounth of days until the password will expired (the value -1 means the password never expire)
 - IDUserType external key to table usertype
 - CodeResetPassword a code (guid) for verify user email
