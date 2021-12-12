@@ -182,3 +182,5 @@ the database contains these tables:
 - IDUserType external key to table usertype
 - CodeResetPassword a code (guid) for verify user email
 - *system fields*
+
+login for admin is "admin" password "Admin123"
