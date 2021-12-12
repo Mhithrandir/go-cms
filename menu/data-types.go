@@ -2,6 +2,7 @@ package menu
 
 import (
 	"cms/database"
+	"cms/route"
 	"cms/usertype"
 )
 
@@ -10,14 +11,15 @@ var DB *database.Database
 
 //Menu struct for the menu table
 type Menu struct {
-	MenuName    string           `json:"MenuName"`
-	Name        string           `json:"Name"`
-	Parent      int64            `json:"Parent"`
-	Path        string           `json:"Path"`
-	MenuOrder   int64            `json:"MenuOrder"`
-	Childrens   []Menu           `json:"Childrens"`
-	Permissions []MenuPermission `json:"Permissions"`
-	IsExpanded  bool             `json:"IsExpanded"`
+	MenuName  string `json:"MenuName"`
+	Name      string `json:"Name"`
+	Parent    int64  `json:"Parent"`
+	IDRoute   int64  `json:"IDRoute"`
+	MenuOrder int64  `json:"MenuOrder"`
+	Childrens []Menu `json:"Childrens"`
+	// Permissions []MenuPermission `json:"Permissions"`
+	Route      route.Route `json:"Route"`
+	IsExpanded bool        `json:"IsExpanded"`
 	database.BaseTable
 }
 

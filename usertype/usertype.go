@@ -24,17 +24,6 @@ func ParseRoute(request customrequest.CustomRequest) {
 
 //GetUserTypes retrieve alla UserTypes from database
 func GetUserTypes(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	result, err := Load()
@@ -46,17 +35,6 @@ func GetUserTypes(request customrequest.CustomRequest) {
 
 //DeleteUserType delete a route from database
 func DeleteUserType(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	id, err := strconv.Atoi(request.Parameters["ID"])
@@ -76,17 +54,6 @@ func DeleteUserType(request customrequest.CustomRequest) {
 
 //AddUserType insert a UserType in database
 func AddUserType(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var userTypeJSON UserType

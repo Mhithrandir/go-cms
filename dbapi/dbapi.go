@@ -23,17 +23,6 @@ func ParseRoute(request customrequest.CustomRequest) {
 }
 
 func GetDatabases(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	db, err := DB.ScanTable("SHOW DATABASES")
@@ -46,17 +35,6 @@ func GetDatabases(request customrequest.CustomRequest) {
 }
 
 func GetTables(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	dbName := request.Parameters["db"]
@@ -70,17 +48,6 @@ func GetTables(request customrequest.CustomRequest) {
 }
 
 func OpenTable(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	name := request.Parameters["name"]
@@ -94,17 +61,6 @@ func OpenTable(request customrequest.CustomRequest) {
 }
 
 func Execute(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var sql SqlArguments

@@ -18,6 +18,8 @@ func ParseRoute(request customrequest.CustomRequest) {
 		AddRoute(request)
 	case "getroutes":
 		GetRoutes(request)
+	case "getroutesfiltered":
+		GetRoutesFiltered(request)
 	case "deleteroute":
 		DeleteRoute(request)
 	case "updateroute":
@@ -31,17 +33,6 @@ func ParseRoute(request customrequest.CustomRequest) {
 
 //AddRoute add a new route
 func AddRoute(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var routeJSON Route
@@ -82,19 +73,35 @@ func AddRoute(request customrequest.CustomRequest) {
 	commons.Ok(request, true, 0, 0)
 }
 
-//GetRoutes returns all routes configured in the database
-func GetRoutes(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
+func GetRoutesFiltered(request customrequest.CustomRequest) {
+	DB = request.DB
+
+	_package, ok := request.Parameters["package"]
+	if !ok {
+		_package = ""
+	}
+	_func, ok := request.Parameters["func"]
+	if !ok {
+		_func = ""
+	}
+	_type, ok := request.Parameters["type"]
+	if !ok {
+		_type = ""
+	}
+
+	result, err := LoadRoutesFiltered(_package, _func, _type)
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
+	commons.Ok(request, result, 0, 0)
+}
+
+// getroutesfiltered
+
+//GetRoutes returns all routes configured in the database
+func GetRoutes(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	page, err := strconv.Atoi(request.Parameters["page"])
@@ -109,7 +116,7 @@ func GetRoutes(request customrequest.CustomRequest) {
 		log.Fatal("Error loading config: ", err)
 	}
 
-	result, err := LoadRoutes(page, _config.Pagination)
+	result, err := LoadRoutes(page*_config.Pagination, _config.Pagination)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -126,17 +133,6 @@ func GetRoutes(request customrequest.CustomRequest) {
 
 //DeleteRoute delete a route from database
 func DeleteRoute(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	id, err := strconv.Atoi(request.Parameters["ID"])
@@ -156,17 +152,6 @@ func DeleteRoute(request customrequest.CustomRequest) {
 
 //UpdateRoute a route in the database
 func UpdateRoute(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var routeJSON Route
@@ -183,6 +168,17 @@ func UpdateRoute(request customrequest.CustomRequest) {
 		errorpages.InternalServerError(request, err.Error())
 		return
 	}
+	for i, _ := range routeJSON.Permissions {
+		routeJSON.Permissions[i].IDInsertUser = request.Claims.IDUser
+		routeJSON.Permissions[i].IDEditUser = request.Claims.IDUser
+		usertype.DB = DB
+		u, err := usertype.GetUserTypeFromDescription(routeJSON.Permissions[i].Description)
+		if err != nil {
+			errorpages.InternalServerError(request, err.Error())
+			return
+		}
+		routeJSON.Permissions[i].IDUserType = u.ID
+	}
 
 	err = routeJSON.Update()
 	if err != nil {
@@ -194,17 +190,6 @@ func UpdateRoute(request customrequest.CustomRequest) {
 
 //CheckRoute check if user has permission to open this route
 func CheckRoute(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var routeJSON Route

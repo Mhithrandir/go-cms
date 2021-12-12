@@ -47,10 +47,10 @@ func ExecuteFooter(request customrequest.CustomRequest) {
 }
 
 //CommonLoad Generic func to be invoked before everything else
-func CommonLoad(request customrequest.CustomRequest, needAuthorization bool) FunctionResponse {
+func CommonLoad(request customrequest.CustomRequest) FunctionResponse {
 	if request.GetMethod() == "OPTIONS" {
 		return Options
-	} else if !request.Claims.IsAuthorized && needAuthorization {
+	} else if !request.Claims.IsAuthorized {
 		logs.Save("commons", "CommonLoad", "User not authorized", logs.Warning, "Package: "+request.Package+" Func:"+request.Func+" IDUserType: "+strconv.Itoa(int(request.Claims.IDUserType)))
 		return UnAuthorized
 	}

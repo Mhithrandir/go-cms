@@ -19,15 +19,14 @@
                 <input id="menuname" class="form-control">
                 <label for="name">Name</label>
                 <input id="name" class="form-control">
-                <label for="path">Path</label>
-                <input id="path" class="form-control">
+                <label for="routes">Route</label>
+                <select id="routes" class="form-control">
+                    <option value="-1">No route</option>
+                </select>
                 <label for="parent">Parent</label>
                 <select id="parent" class="form-control"></select>
                 <label for="order">Order</label>
                 <input id="order" type="number" min="-1" class="form-control">
-                <label>Permissions:</label>
-                <div id="usertypes-checkbox">
-                </div>
             </form>
         </div>
         <footer style="text-align: right;">
@@ -39,14 +38,27 @@
 <script>
     var rows = [];
     var userTypes = [];
+    var routes = [];
     var selectedRow;
     $(document).ready(() => {
         $("#edit-dialog").hide();
         Get("../api/usertype/getusertypes", 0).done(function(data) {
             userTypes = data.Data;
-            userTypes.forEach((u) => {
-                $("#usertypes-checkbox").append($("<input class=\"form-control\" id=\"" + u.Description + "\" type=\"checkbox\">"));
-                $("#usertypes-checkbox").append($("<label for=\"" + u.Description + "\">" + u.Description + "</label>"));
+        });
+        Get("../api/route/getroutesfiltered?type=be", 0).done(function(data) {
+            routes = data.Data;
+            routes.forEach((r) => {
+                if(r.Func != "*") {
+                    $("#routes").append($("<option value=\"" + r.ID + "\">" + r.Type + "/" + r.Func + "</option>"));
+                }
+            });
+            Get("../api/route/getroutesfiltered?type=fe", 0).done(function(data) {
+                routes = data.Data;
+                routes.forEach((r) => {
+                    if(r.Func != "*") {
+                        $("#routes").append($("<option value=\"" + r.ID + "\">" + r.Type + "/" + r.Func + "</option>"));
+                    }
+                });
             });
         });
         LoadMenu();
@@ -70,8 +82,8 @@
                 let trh = $("<tr></tr>");
                 $(trh).append($("<th>Name</th>"));
                 $(trh).append($("<th>Parent</th>"));
-                $(trh).append($("<th>Path</th>"));
                 $(trh).append($("<th>Order</th>"));
+                $(trh).append($("<th>Path</th>"));
                 $(table).append($(trh));
                 userTypes.forEach((row) => {
                         $(trh).append($("<th>" + row.Description + "</th>"));
@@ -82,10 +94,11 @@
                         let childtr = $("<tr></tr>");
                         $(childtr).append($("<td>" + row.Name + "</td>"));
                         $(childtr).append($("<td>" + row.Parent + "</td>"));
-                        $(childtr).append($("<td>" + row.Path + "</td>"));
+                        // $(childtr).append($("<td>" + row.Route.Type + "/" + row.Route.Func + "</td>"));
                         $(childtr).append($("<td>" + row.MenuOrder + "</td>"));
-                        row.Permissions.forEach((p) => {
-                            if(p.Enabled) {
+                        $(childtr).append($("<td>" + row.Route.Path + "</td>"));
+                        row.Route.Permissions.forEach((p) => {
+                            if(p != null && p.Enabled) {
                                 $(childtr).append($("<td>&times;</td>"));
                             }
                             else {
@@ -121,9 +134,7 @@
         $("#path").val(selectedRow.Path);
         $("#order").val(selectedRow.MenuOrder);
         $("#parent").val(selectedRow.Parent);
-        selectedRow.Permissions.forEach((p) => {
-            $("#" + p.UserType.Description).prop("checked", p.Enabled);
-        });
+        $("#routes").val(selectedRow.IDRoute);
     }
     function CloseForm() {
         $("#edit-menu")[0].reset();
@@ -165,7 +176,8 @@
         menu.MenuName = $('#menuname').val();
         menu.Name = $('#name').val();
         menu.Parent = $('#parent').val();
-        menu.Path = $('#path').val();
+        // menu.Path = $('#path').val();
+        menu.IDRoute = parseInt($('#routes').val());
         menu.MenuOrder = parseInt($('#order').val());
         menu.Parent = parseInt($('#parent').val());
         let func = "updatemenu";

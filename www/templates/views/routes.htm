@@ -12,8 +12,11 @@
             <th>Package</th>
             <th>Func</th>
             <th>Type</th>
+            <th>Path</th>
+            <th>Methods</th>
         </tr>
     </table>
+    <div id="pagination" class="mt-1"></div>
     <button class="btn mt-1" onclick="Add()">Add route</button>
 </div>
 <div class="dialog" id="edit-dialog">
@@ -27,11 +30,12 @@
                 <input id="func" class="form-control">
                 <label for="type">Type</label>
                 <select id="type" name="type" class="form-control">
-                    <option value="api">*</option>
                     <option value="api">Api</option>
                     <option value="be">Backend</option>
                     <option value="fe">Frontend</option>
                 </select>
+                <label for="methods">Methods</label>
+                <input id="methods" class="form-control">
                 <label>Permissions:</label>
                 <div id="usertypes-checkbox">
                 </div>
@@ -58,17 +62,19 @@
         });
         LoadRoutes();
     });
-    function LoadRoutes() {
+    function LoadRoutes(page = 0) {
         while($($("#dati").children()[0]).children().length > 1) {
             $($($("#dati").children()[0]).children()[1]).remove();
         }
-        Get("../api/route/getroutes?page=0", 0).done(function(data) {
+        Get("../api/route/getroutes?page=" + page, null).done(function(data) {
             rows = data.Data;
             rows.forEach((row) => {
                 var tr = $("<tr></tr>");
                 $(tr).append($("<td>" + row.Package + "</td>"));
                 $(tr).append($("<td>" + row.Func + "</td>"));
                 $(tr).append($("<td>" + row.Type + "</td>"));
+                $(tr).append($("<td>" + row.Path + "</td>"));
+                $(tr).append($("<td>" + row.Methods + "</td>"));
                 row.Permissions.forEach((p) => {
                     if(p.Enabled) {
                         $(tr).append($("<td>&times;</td>"));
@@ -80,6 +86,16 @@
                 $(tr).append($("<td><button class=\"btn-warning\" onclick=\"Edit(" + row.ID + ");\">Edit</button><button class=\"btn-error ml-1\" onclick=\"SetDeleteMessage(" + row.ID + ", '');\">Delete</button></td>"));
                 $("#dati").append(tr);
             });
+            //pagination
+            $("#pagination").empty();
+            var pagination = $("#pagination");
+            for(let i = 0; i < data.PageCount; i++) {
+                let active = "";
+                if(i == data.Page) {
+                    active = "disabled";
+                }
+                $(pagination).append($("<button class=\"btn ml-1 id=\"page-" + i.toString() + "\" " + active + " onclick=\"LoadRoutes(" + i.toString() + ")\">" + i.toString() + "</button>"));
+            }
         }).fail(function(data) {
             ShowError(data);
         });
@@ -95,6 +111,7 @@
         $("#package").val(selectedRow.Package);
         $("#func").val(selectedRow.Func);
         $("#type").val(selectedRow.Type);
+        $("#methods").val(selectedRow.Methods);
         selectedRow.Permissions.forEach((p) => {
             $("#" + p.UserType.Description).prop("checked", p.Enabled);
         });
@@ -109,18 +126,18 @@
         //Setting the new object
         let route = {};
         if(selectedRow.IsNew) {
-            route = selectedRow;
+            route.Permissions = [];
             let count = 0;
             $('#usertypes-checkbox').children().each((c) => {
                 if($($('#usertypes-checkbox').children()[c]).is("input")) {
-                    route.Permissions[count].UserType.Description = $($('#usertypes-checkbox').children()[c]).attr('id')
-                    route.Permissions[count].Enabled = $($('#usertypes-checkbox').children()[c]).prop("checked");
+                    route.Permissions[count] = { UserType: { Description: $($('#usertypes-checkbox').children()[c]).attr('id') }, Enabled: $($('#usertypes-checkbox').children()[c]).prop("checked") };
                     count++;
                 }
             });
         }
         else {
             //Istantiate new structure for saving the route
+            route = selectedRow;
             route.Permissions = [];
             $('#usertypes-checkbox').children().each((c) => {
                 if($($('#usertypes-checkbox').children()[c]).is("input")) {
@@ -131,6 +148,7 @@
         route.Package = $('#package').val();
         route.Func = $('#func').val();
         route.Type = $('#type').val();
+        route.Methods = $('#methods').val();
         let func = "addroute";
         if((selectedRow != null) &&(selectedRow.IsNew != null) && (!selectedRow.IsNew)) {
             func = "updateroute";

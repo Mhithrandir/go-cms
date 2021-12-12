@@ -11,6 +11,8 @@ func (r Route) Add() error {
 	err = DB.Query(sql,
 		r.Package,
 		r.Func,
+		r.Type,
+		r.Methods,
 		r.IDInsertUser,
 		r.IDInsertUser)
 	if err != nil {
@@ -19,16 +21,14 @@ func (r Route) Add() error {
 	}
 	logs.Save("routes", "Add", "Added a route", logs.Message, r)
 
-	tempRoute, err := GetRoute(r.Package, r.Func)
+	tempRoute, err := GetRoute(r.Package, r.Func, r.Type, r.Methods)
 	if err != nil {
 		return err
 	}
 
 	r.ID = tempRoute.ID
 	//Run the update to save all the permissions
-	r.Update()
-
-	return nil
+	return r.Update()
 }
 
 //Delete a route
@@ -58,6 +58,11 @@ func (r Route) Update() error {
 		return err
 	}
 	err = DB.Query("UPDATE Routes SET Type = ? WHERE ID = ?", r.Type, r.ID)
+	if err != nil {
+		logs.Save("route", "Update", "Error updating Type", logs.Error, err.Error())
+		return err
+	}
+	err = DB.Query("UPDATE Routes SET Methods = ? WHERE ID = ?", r.Methods, r.ID)
 	if err != nil {
 		logs.Save("route", "Update", "Error updating Type", logs.Error, err.Error())
 		return err

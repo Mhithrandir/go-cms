@@ -1,6 +1,7 @@
 {{ define "menu-item" }}
-    {{ if (ne .Path "") }}
-        <a class="menu-header" href="{{ .Path }}">{{ .Name }}</a>
+    {{ if (ne .Route.Package "fake") }}
+        <!-- <a class="menu-header" href="{{ .Route.Func }}">{{ .Name }}</a> -->
+        <a class="menu-header" href="{{ .Route.Path }}">{{ .Name }}</a>
     {{else}}
         <span class="menu-header" onclick="MenuItemToglle(this)"><span class="icon-menu">:.</span> {{ .Name }}</span>
     {{end}}

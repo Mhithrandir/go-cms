@@ -36,16 +36,12 @@
             <form class="layout" id="edit-component">
                 <label for="name">Name</label>
                 <input id="name" class="form-control">
-                <label for="content-editor">Content</label>
-                <!-- <textarea id="contentComponent" class="form-control" style="min-height: 200px;"></textarea> -->
-                <div id="content-editor" class="editor-container"></div>
                 <label for="routes">Route</label>
                 <select id="routes" class="form-control">
                     <option value="-1">No route</option>
                 </select>
-                <label>Permissions:</label>
-                <div id="usertypes-checkbox">
-                </div>
+                <label for="content-editor">Content</label>
+                <div id="content-editor" class="editor-container"></div>
             </form>
         </div>
         <footer style="text-align: right;">
@@ -64,22 +60,26 @@
         Get("../api/usertype/getusertypes", 0).done(function(data) {
             userTypes = data.Data;
             userTypes.forEach((u) => {
-                $("#usertypes-checkbox").append($("<input class=\"form-control\" id=\"" + u.Description + "\" type=\"checkbox\">"));
-                $("#usertypes-checkbox").append($("<label for=\"" + u.Description + "\">" + u.Description + "</label>"));
                 $("tr").append($("<th>" + u.Description + "</th>"));
             });
             $("tr").append($("<th>#</th>"));
         });
-        window.setTimeout(() => {
-            Get("../api/route/getroutes?page=0", 0).done(function(data) {
+        Get("../api/route/getroutesfiltered?type=be", 0).done(function(data) {
+            routes = data.Data;
+            routes.forEach((r) => {
+                if(r.Func != "*") {
+                    $("#routes").append($("<option value=\"" + r.ID + "\">" + r.Type + "/" + r.Func + "</option>"));
+                }
+            });
+            Get("../api/route/getroutesfiltered?type=fe", 0).done(function(data) {
                 routes = data.Data;
                 routes.forEach((r) => {
-                    if((r.Func != "*") && (r.Type != "api")) {
+                    if(r.Func != "*") {
                         $("#routes").append($("<option value=\"" + r.ID + "\">" + r.Type + "/" + r.Func + "</option>"));
                     }
                 });
             });
-        }, 3000)
+        });
         LoadComponents();
         require.config({ paths: { vs: 'scripts/monaco-editor/min/vs' } });
     });
@@ -93,7 +93,7 @@
                 var tr = $("<tr></tr>");
                 $(tr).append($("<td>" + row.Name + "</td>"));
                 $(tr).append($("<td>" + row.Route.Type + "/" + row.Route.Func + "</td>"));
-                row.Permissions.forEach((p) => {
+                row.Route.Permissions.forEach((p) => {
                     if(p.Enabled) {
                         $(tr).append($("<td>&times;</td>"));
                     }
@@ -147,6 +147,7 @@
     }
     function CloseForm() {
         $("#edit-component")[0].reset();
+        $("#content-editor").empty();
         $('#edit-dialog').hide();
         selectedRow = null;
     }

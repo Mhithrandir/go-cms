@@ -14,6 +14,8 @@ type Route struct {
 	Func        string            `json:"Func"`
 	Type        string            `json:"Type"`
 	Permissions []RoutePermission `json:"Permissions"`
+	Path        string            `json:"Path"`
+	Methods     string            `json:"Methods"`
 	database.BaseTable
 }
 

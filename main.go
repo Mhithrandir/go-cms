@@ -7,6 +7,7 @@ import (
 	"cms/database"
 	"cms/dbapi"
 	"cms/errorpages"
+	"cms/logs"
 	"cms/menu"
 	"cms/page"
 	"cms/route"
@@ -14,6 +15,7 @@ import (
 	"cms/usertype"
 	"log"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -44,6 +46,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	db, err := database.New(_config.Database.Driver, _config.Database.Dns)
 	defer db.Conn.Close()
+
 	if err != nil {
 		log.Fatal("Error initializing database: ", err.Error())
 		return
@@ -53,6 +56,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		errorpages.NotAccettable(request, err.Error())
 		return
 	}
+	if request.GetMethod() == "OPTIONS" {
+		return
+	} else if !request.Claims.IsAuthorized {
+		logs.Save("commons", "CommonLoad", "User not authorized", logs.Warning, "Package: "+request.Package+" Func:"+request.Func+" IDUserType: "+strconv.Itoa(int(request.Claims.IDUserType)))
+		errorpages.Unauthorized(request)
+		return
+	}
+
 	switch request.Package {
 	case "page":
 		page.ParseRoute(request)

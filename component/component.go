@@ -28,17 +28,6 @@ func ParseRoute(request customrequest.CustomRequest) {
 
 //GetComponents Load all components
 func GetComponents(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var page int
@@ -68,17 +57,6 @@ func GetComponents(request customrequest.CustomRequest) {
 
 //AddComponents add a component in the database
 func AddComponent(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var componentJSON Component
@@ -106,17 +84,6 @@ func AddComponent(request customrequest.CustomRequest) {
 }
 
 func UpdateComponent(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var componentJSON Component
@@ -145,17 +112,6 @@ func UpdateComponent(request customrequest.CustomRequest) {
 
 //DeleteComponent delete a component item from database
 func DeleteComponent(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	id, err := strconv.Atoi(request.Parameters["ID"])

@@ -8,7 +8,6 @@ import (
 	"cms/logs"
 	"cms/usertype"
 	"log"
-	"net/mail"
 	"strconv"
 	"strings"
 	"time"
@@ -38,17 +37,6 @@ func ParseRoute(request customrequest.CustomRequest) {
 
 //Login handle users login
 func Login(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, false) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var userJSON User
@@ -107,17 +95,6 @@ func Login(request customrequest.CustomRequest) {
 
 //Register a new user
 func Register(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var userJSON User
@@ -153,7 +130,7 @@ func Register(request customrequest.CustomRequest) {
 	}
 
 	usertype.DB = DB
-	usertype, err := usertype.GetUserTypeFromDescription("NotVerifiedUser")
+	usertype, err := usertype.GetUserTypeFromDescription("UserNotVerified")
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -178,38 +155,27 @@ func Register(request customrequest.CustomRequest) {
 	}
 	message += "\r\n" + body
 
-	sent, err := commons.SendMail(
-		mail.Address{"NoReply", _config.NoreplyMailAddress},
-		userJSON.Username,
-		_config.SubjectRegistration,
-		message)
-	if err != nil || !sent {
+	// sent, err := commons.SendMail(
+	// 	mail.Address{"NoReply", _config.NoreplyMailAddress},
+	// 	userJSON.Username,
+	// 	_config.SubjectRegistration,
+	// 	message)
+	// if err != nil || !sent {
+	// 	errorpages.InternalServerError(request, err.Error())
+	// 	return
+	// }
+
+	//if everything is ok add the user in the database
+	err = userJSON.Add()
+	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
 	}
-
-	//if everything is ok add the user in the database
-	// err = userJSON.Add()
-	// if err != nil {
-	// 	commons.InternalServerError(request, err)
-	// 	return
-	// }
 	commons.Ok(request, true, 0, 0)
 }
 
 //VerifyUser verify the mail of a user
 func VerifyUser(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	if !request.Claims.IsAuthorized {
@@ -234,17 +200,6 @@ func VerifyUser(request customrequest.CustomRequest) {
 
 //CheckUserExist verify the user exist
 func CheckUserExist(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var userJSON User
@@ -265,17 +220,6 @@ func CheckUserExist(request customrequest.CustomRequest) {
 
 //LoadUsers load users
 func LoadUsers(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var page int
@@ -312,17 +256,6 @@ func LoadUsers(request customrequest.CustomRequest) {
 
 //UpdateUser update user information
 func UpdateUser(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var userJSON User

@@ -12,7 +12,7 @@ func (m Menu) Add() error {
 		m.MenuName,
 		m.Name,
 		m.Parent,
-		m.Path,
+		m.IDRoute,
 		m.MenuOrder,
 		m.IDInsertUser,
 		m.IDEditUser)
@@ -21,48 +21,49 @@ func (m Menu) Add() error {
 		return err
 	}
 	logs.Save("menu", "Add", "Added a menu item", logs.Message, m)
-	return m.UpdatePermission()
-}
-
-//UpdatePermission Update all permission in associative table, if not exist and enabled = true then create it, if enabled = false then deleted
-func (m Menu) UpdatePermission() error {
-	for _, p := range m.Permissions {
-		if p.Enabled {
-			exist, err := m.CheckMenuPermission(p.IDUserType)
-			if err != nil {
-				return err
-			}
-			if !exist {
-				err := DB.Query("INSERT INTO MenuPermission(IDMenu, IDUserType, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES(?, ?, NOW(), ?, NOW(), ?)",
-					m.ID, p.IDUserType, m.IDInsertUser, m.IDEditUser)
-				if err != nil {
-					logs.Save("menu", "Update", "Error adding Permission: "+p.Description, logs.Error, err.Error())
-					return err
-				}
-			}
-		} else if !p.Enabled {
-			err := DB.Query("DELETE FROM MenuPermission WHERE IDMenu = ? AND IDUserType = ?",
-				m.ID, p.IDUserType)
-			if err != nil {
-				logs.Save("menu", "Update", "Error deleteing Permission: "+p.Description, logs.Error, err.Error())
-				return err
-			}
-		}
-	}
+	// return m.UpdatePermission()
 	return nil
 }
 
+//UpdatePermission Update all permission in associative table, if not exist and enabled = true then create it, if enabled = false then deleted
+// func (m Menu) UpdatePermission() error {
+// 	for _, p := range m.Permissions {
+// 		if p.Enabled {
+// 			exist, err := m.CheckMenuPermission(p.IDUserType)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			if !exist {
+// 				err := DB.Query("INSERT INTO MenuPermission(IDMenu, IDUserType, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES(?, ?, NOW(), ?, NOW(), ?)",
+// 					m.ID, p.IDUserType, m.IDInsertUser, m.IDEditUser)
+// 				if err != nil {
+// 					logs.Save("menu", "Update", "Error adding Permission: "+p.Description, logs.Error, err.Error())
+// 					return err
+// 				}
+// 			}
+// 		} else if !p.Enabled {
+// 			err := DB.Query("DELETE FROM MenuPermission WHERE IDMenu = ? AND IDUserType = ?",
+// 				m.ID, p.IDUserType)
+// 			if err != nil {
+// 				logs.Save("menu", "Update", "Error deleteing Permission: "+p.Description, logs.Error, err.Error())
+// 				return err
+// 			}
+// 		}
+// 	}
+// 	return nil
+// }
+
 //Delete a route
 func Delete(id int64) error {
-	m, err := GetMenuFromID(id)
-	if err != nil {
-		return err
-	}
-	//Delete all permission so cleans the routepermission table
-	for i, _ := range m.Permissions {
-		m.Permissions[i].Enabled = false
-	}
-	m.Update()
+	// m, err := GetMenuFromID(id)
+	// if err != nil {
+	// 	return err
+	// }
+	// //Delete all permission so cleans the routepermission table
+	// for i, _ := range m.Permissions {
+	// 	m.Permissions[i].Enabled = false
+	// }
+	// m.Update()
 	return DB.Delete("menus", id)
 }
 
@@ -88,7 +89,7 @@ func (m Menu) Update() error {
 		logs.Save("menu", "Update", "Error updating MenuOrder", logs.Error, err.Error())
 		return err
 	}
-	err = DB.Query("UPDATE Menus SET Path = ? WHERE ID = ?", m.Path, m.ID)
+	err = DB.Query("UPDATE Menus SET IDRoute = ? WHERE ID = ?", m.IDRoute, m.ID)
 	if err != nil {
 		logs.Save("menu", "Update", "Error updating IDUserType", logs.Error, err.Error())
 		return err
@@ -98,5 +99,6 @@ func (m Menu) Update() error {
 		logs.Save("menu", "Update", "Error updating EditDate", logs.Error, err.Error())
 		return err
 	}
-	return m.UpdatePermission()
+	// return m.UpdatePermission()
+	return nil
 }

@@ -26,7 +26,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 		routes(request)
 	case "menus":
 		menus(request)
-	case "db":
+	case "database":
 		db(request)
 	case "register":
 		register(request)
@@ -109,16 +109,6 @@ func common(request customrequest.CustomRequest, pathTemplate string, params map
 // }
 
 func login(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, false) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
 	if request.Claims.IsAuthorized && request.Claims.IDUserType < 99 {
 		//It not a guest user, so it sould not enter this page
 		template, err := LoadTemplate("www/templates/views/redirect.htm")
@@ -138,137 +128,38 @@ func login(request customrequest.CustomRequest) {
 }
 
 func logout(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	common(request, "www/templates/views/logout.htm", nil)
 }
 
 func users(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	common(request, "www/templates/views/users.htm", nil)
 }
 
 func usertypes(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	common(request, "www/templates/views/usertypes.htm", nil)
 }
 
 func routes(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	common(request, "www/templates/views/routes.htm", nil)
 }
 
 func menus(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	common(request, "www/templates/views/menu.htm", nil)
 }
 
 func db(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	common(request, "www/templates/views/database.htm", nil)
 }
 
 func register(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	common(request, "www/templates/views/register.htm", nil)
 }
 
 func componenteditor(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	common(request, "www/templates/views/componenteditor.htm", nil)
 }
 
 func staticContent(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, request.IsBakcEnd) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	//Set the database variable
 	component.DB = request.DB
 

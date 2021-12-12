@@ -120,6 +120,7 @@ func CountUser() (int64, error) {
 		return -1, err
 	}
 	reader, err := DB.Reader(sql)
+	defer reader.Close()
 	reader.Next()
 	var count int64
 	reader.Scan(&count)

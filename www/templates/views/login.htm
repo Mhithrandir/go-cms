@@ -19,7 +19,6 @@
 <script>
     function Login() {
         Post("user", "login", { "username": $("#username").val() , "password": $("#password").val()}).done(function(data) {
-            console.log(data);
             SetLogged(data.Data);
             Redirect("./");
             $("#success").text("Login succefully, you will redirect to the homepage");

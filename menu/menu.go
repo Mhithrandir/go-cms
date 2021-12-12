@@ -30,17 +30,6 @@ func ParseRoute(request customrequest.CustomRequest) {
 
 //GetMenu Load a specific menu
 func GetMenu(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	result, err := LoadMenu(request.Parameters["menuName"], request.Claims.IDUserType, -1)
@@ -53,17 +42,6 @@ func GetMenu(request customrequest.CustomRequest) {
 
 //GetPlainMenu Load all menu
 func GetPlainMenu(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 	var page int
 	var err error
@@ -99,17 +77,6 @@ func GetPlainMenu(request customrequest.CustomRequest) {
 
 //AddMenu add a menu item to the database
 func AddMenu(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var menuJSON Menu
@@ -138,17 +105,6 @@ func AddMenu(request customrequest.CustomRequest) {
 
 //UpdateMenu a menu item to the database
 func UpdateMenu(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	var menuJSON Menu
@@ -176,17 +132,6 @@ func UpdateMenu(request customrequest.CustomRequest) {
 
 //DeleteMenu delete a menu item from database
 func DeleteMenu(request customrequest.CustomRequest) {
-	switch commons.CommonLoad(request, true) {
-	case commons.Options:
-		return
-	case commons.UnAuthorized:
-		errorpages.Unauthorized(request)
-		return
-	case commons.Error:
-		errorpages.InternalServerError(request, "Not handled yet, maybe it doesn't need it")
-		return
-	}
-
 	DB = request.DB
 
 	id, err := strconv.Atoi(request.Parameters["ID"])

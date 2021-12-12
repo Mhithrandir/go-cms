@@ -99,13 +99,6 @@ func (a CustomRequest) CheckPermission() (CustomRequest, error) {
 		return a, err
 	}
 
-	type Route struct {
-		Package     string   `json:"Package"`
-		Func        string   `json:"Func"`
-		Permissions []string `json:"Permissions"`
-		database.BaseTable
-	}
-
 	sql, err := a.DB.GetQuery("CheckRoute")
 	if err != nil {
 		return a, err
@@ -119,7 +112,7 @@ func (a CustomRequest) CheckPermission() (CustomRequest, error) {
 		_type = "be"
 	}
 
-	results, err := a.DB.ScanTable(sql, a.Claims.IDUserType, a.Package, a.Func, _type)
+	results, err := a.DB.ScanTable(sql, a.Claims.IDUserType, a.Package, a.Func, _type, a.Request.Method)
 	if err != nil {
 		return a, err
 	}
