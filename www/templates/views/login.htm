@@ -1,11 +1,5 @@
-<ul id="mainMenu">
-    {{ range $m := .MainMenu }}
-    <li>
-        {{ template "menu-item" $m }}
-    </li>
-    {{end}}
-</ul>
-<div>
+{{ template "menu" .MenuName }}
+<div class="render">
     <h2>Login in the website</h2>
     <form method="post">
         <label for="username">Username</label>

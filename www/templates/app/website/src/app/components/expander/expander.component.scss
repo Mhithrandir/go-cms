@@ -1,0 +1,25 @@
+.header {
+    display: grid;
+    grid-template-columns: 25px 1fr;
+    line-height: 25px;
+}
+.expander, .expander-expanded, .bool {
+    svg {
+        height: 25px;
+        fill: white;
+        cursor: pointer;
+    }
+}
+.expander, .expander-expanded {
+    svg {
+        transition: transform .2s ease-in-out;
+        &:hover {
+            fill: orange;
+        }
+    }
+}
+.expander-expanded {
+    svg {
+        transform: rotate(90deg);
+    }
+}

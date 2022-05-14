@@ -1,0 +1,40 @@
+<app-table [table]="table" (edited)="Edit($event)" (deleted)="OpenDeleteDialog($event.ID, 'user', 'delete');">
+</app-table>
+
+<!--
+<table id="dati" >
+    <thead>
+        <tr>
+            <th scope="col">Username</th>
+            <th scope="col">Password expired</th>
+            <th scope="col">Last Login</th>
+            <th scope="col">Password duration (in days)</th>
+            <th scope="col">User type</th>
+            <th scope="col">#</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let r of records">
+            <td>{{ r.Username }}</td>
+            <td>{{ r.IsPasswordExpired }}</td>
+            <td>{{ r.LastLogin }}</td>
+            <td>{{ r.PasswordDuration }}</td>
+            <td>{{ r.UserType.Description }}</td>
+            <td>
+                <button class="btn-warning" (click)="Edit(r);">Edit type</button>
+                <button class="btn-error ml-1" (click)="OpenDeleteDialog(r.ID, 'user', 'delete');">Delete</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+-->
+<app-dialog
+    [title]="'Edit User-Type'"
+    [dialogType]="dialogType"
+    *ngIf="dialogType != 99 && dialogType != 2"
+    (cancelClick)="CancelDialogClick()">
+    <app-edit-user
+        [selectedUsertype]="selectedRecord"
+        [userTypes]="userTypes"
+        (saved)="SavedDialogClick($event, dialogType)"></app-edit-user>
+</app-dialog>

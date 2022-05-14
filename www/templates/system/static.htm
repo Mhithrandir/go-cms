@@ -1,10 +1,4 @@
-<ul id="mainMenu">
-    {{ range $m := .MainMenu }}
-    <li>
-        {{ template "menu-item" $m }}
-    </li>
-    {{end}}
-</ul>
+{{ template "menu" .MenuName }}
 <div>
     {{ .Content }}
 </div>

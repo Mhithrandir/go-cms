@@ -1,6 +1,7 @@
 package customrequest
 
 import (
+	"cms/config"
 	"cms/database"
 	"net/http"
 
@@ -12,6 +13,7 @@ type CustomRequest struct {
 	Request    *http.Request       `json:"Request"` //r.Method, r.URL.Path
 	Parameters map[string]string   `json:"Parameters"`
 	DB         *database.Database  `json:"DB"`
+	Config     config.Config       `json:"Config"`
 	Claims     Claims              `json:"Claims"`
 	Package    string              `json:"Package"`
 	Func       string              `json:"Func"`

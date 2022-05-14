@@ -2,6 +2,7 @@ package logs
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"os"
 	"runtime"
@@ -47,4 +48,31 @@ func SaveMessage(mex LogMessage) {
 	if _, err = f.WriteString(string(file) + ","); err != nil {
 		log.Panicln(err)
 	}
+}
+
+//GetLogs returns all logs file
+func GetLogs() ([]string, error) {
+	var logNames []string
+	files, err := ioutil.ReadDir("./")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if !file.IsDir() && file.Name()[0:4] == "log_" {
+			// fmt.Println(file.Name(), file.IsDir())
+			logNames = append(logNames, file.Name())
+		}
+	}
+	return logNames, nil
+}
+
+//GetLog read the content of the specified log
+func GetLog(path string) (string, error) {
+	f, err := os.ReadFile("./" + path)
+	if err != nil {
+		return "", err
+	}
+	res := string(f)
+	return "[" + string(res[0:len(res)-1]) + "]", nil
 }

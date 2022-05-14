@@ -13,9 +13,9 @@ func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "getusertypes":
 		GetUserTypes(request)
-	case "deleteusertype":
+	case "delete":
 		DeleteUserType(request)
-	case "addusertype":
+	case "add":
 		AddUserType(request)
 	default:
 		errorpages.NotFound(request)
@@ -67,7 +67,7 @@ func AddUserType(request customrequest.CustomRequest) {
 	if exist && err == nil {
 		errorpages.BadRequest(request, "UserType already exist")
 		return
-	} else if err != nil {
+	} else if exist && err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
 	}

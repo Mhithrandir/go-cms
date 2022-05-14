@@ -1,0 +1,31 @@
+<table id="dati" >
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Icon</th>
+            <th scope="col">Surname</th>
+            <th scope="col">Background</th>
+            <th scope="col">User</th>
+            <th scope="col">#</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let r of records">
+            <td>{{ r.Name }}</td>
+            <td>{{ r.Icon }}</td>
+            <td>{{ r.Surname }}</td>
+            <td>{{ r.Background }}</td>
+            <td>{{ r.User.Username }}</td>
+            <td>
+                <button class="btn-warning" (click)="Edit(r);">Edit</button>
+                <button class="btn-error ml-1" (click)="OpenDeleteDialog(r.ID, 'user', 'delete');">Delete</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<app-dialog
+    [title]="'Edit Character'"
+    [dialogType]="dialogType"
+    *ngIf="dialogType != 99 && dialogType != 2"
+    (cancelClick)="CancelDialogClick()">
+</app-dialog>

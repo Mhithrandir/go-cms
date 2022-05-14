@@ -4,6 +4,7 @@ import (
 	"cms/commons"
 	"cms/logs"
 	"database/sql"
+	"errors"
 )
 
 //Return a usertype for a specific description
@@ -22,7 +23,11 @@ func GetUserTypeFromDescription(desc string) (UserType, error) {
 		return UserType{}, err
 	}
 
-	return results[0], nil
+	if len(results) > 0 {
+		return results[0], nil
+	} else {
+		return UserType{}, errors.New("User-Type not found")
+	}
 }
 
 //Load alla usertype
@@ -47,7 +52,9 @@ func Load() ([]UserType, error) {
 //Exist check if usertype exist in the database
 func (u UserType) Exist() (bool, error) {
 	result, err := GetUserTypeFromDescription(u.Description)
-	if err != nil {
+	if err != nil && err.Error() == "User-Type not found" {
+		return false, nil
+	} else if err != nil {
 		return false, err
 	}
 	return result != UserType{}, nil

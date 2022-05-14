@@ -1,11 +1,5 @@
-<ul id="mainMenu">
-    {{ range $m := .MainMenu }}
-    <li>
-        {{ template "menu-item" $m }}
-    </li>
-    {{end}}
-</ul>
-<div>
+{{ template "menu" .MenuName }}
+<div class="render">
     <h2>Routes</h2>
     <table id="dati">
         <tr>
@@ -149,9 +143,9 @@
         route.Func = $('#func').val();
         route.Type = $('#type').val();
         route.Methods = $('#methods').val();
-        let func = "addroute";
+        let func = "add";
         if((selectedRow != null) &&(selectedRow.IsNew != null) && (!selectedRow.IsNew)) {
-            func = "updateroute";
+            func = "update";
         }
         Post("route", func, route).done(function(data) {
             LoadRoutes();

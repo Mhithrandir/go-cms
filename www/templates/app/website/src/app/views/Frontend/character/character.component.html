@@ -1,0 +1,13 @@
+<ng-container *ngIf="records == null && stepCreation == -1">
+    <h2>Non hai ancora creato un personaggio</h2>
+    <button class="btn" (click)="BeginCreation()">Crea un personaggio</button>
+</ng-container>
+<app-create-character
+    *ngIf="stepCreation > -1"
+    [stepCreation]="stepCreation"
+    [races]="races"
+    [classes]="classes"
+    [scheda]="scheda"
+    (stepChanged)="StepChanged($event)"
+    (saved)="Saved($event)">
+</app-create-character>

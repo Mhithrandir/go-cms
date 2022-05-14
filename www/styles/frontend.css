@@ -1,0 +1,67 @@
+/*!**********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[2]!./node_modules/resolve-url-loader/index.js??ruleSet[1].rules[6].rules[1].use[0]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[6].rules[1].use[1]!./src/app/styles/frontend.scss ***!
+  \**********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+@import url(https://fonts.googleapis.com/css2?family=Share+Tech&display=swap);
+/*!**************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[6].rules[0].oneOf[0].use[2]!./node_modules/resolve-url-loader/index.js??ruleSet[1].rules[6].rules[1].use[0]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[6].rules[1].use[1]!./src/app/styles/frontend.scss (1) ***!
+  \**************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+body, html {
+  font-family: Share Tech, sans-serif;
+}
+body {
+  background: url('../img/pages/sfondo.png');
+  background-size: cover;
+}
+#content {
+  width: 1200px;
+  margin: auto;
+}
+::-webkit-scrollbar-thumb {
+  background: cyan;
+  border-radius: 2.5px;
+}
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px cyan;
+  border-radius: 2.5px;
+}
+.render {
+  background-color: rgba(24, 23, 28, 0.7490196078);
+  text-shadow: 0 0 10px cyan;
+  color: #e0ffff;
+}
+.menu {
+  height: 100%;
+  padding: 0;
+  background: repeating-linear-gradient(180deg, transparent 0, rgba(204, 94, 98, 0.2) 1px, rgba(204, 94, 98, 0.2) 3px, rgba(204, 94, 98, 0.2) 5px, rgba(204, 94, 98, 0.2) 0, transparent 0.5%), repeating-linear-gradient(270deg, rgba(1, 1, 1, 0.9) 100%, rgba(1, 1, 1, 0.9) 0);
+}
+.menu li {
+  margin: 0;
+}
+.menu li .menu-header {
+  text-transform: uppercase;
+  color: rgba(211, 87, 91, 0.81);
+  text-shadow: 0 0 3px rgba(211, 87, 91, 0.91);
+  transition: color 1s ease-out;
+  transition: border-color 1s ease-out;
+  border: 2px solid transparent;
+  border-left-width: 5px;
+  -webkit-clip-path: polygon(350px 0, 350px 29px, 322px 57px, 0 57px, 0 0);
+  clip-path: polygon(350px 0, 350px 29px, 322px 57px, 0 57px, 0 0);
+  background-color: transparent;
+}
+.menu li .menu-header:hover {
+  color: #61e4fa;
+  background: rgba(0, 0, 0, 0.25);
+  border-color: #61e4fa;
+  transition: color 0.23s linear;
+  transition: border-color 0.23s linear;
+}
+.menu li .active {
+  color: #61e4fa;
+  background: rgba(0, 0, 0, 0.25);
+  border-color: #61e4fa;
+  transition: color 0.23s linear;
+  transition: border-color 0.23s linear;
+}
+
+/*# sourceMappingURL=frontend.css.map*/

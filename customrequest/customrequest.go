@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strings"
 
@@ -68,14 +69,19 @@ func New(w http.ResponseWriter, r *http.Request, db *database.Database) (CustomR
 	for _, key := range parametri {
 		vett = strings.Split(key, "=")
 		if len(vett) == 2 {
-			a.Parameters[vett[0]] = vett[1]
+			a.Parameters[vett[0]] = strings.ReplaceAll(vett[1], "%20", " ")
 		} else {
 			a.Parameters[vett[0]] = ""
 		}
 	}
 
+	err := config.LoadConfiguration(&a.Config)
+	if err != nil {
+		log.Fatal("Error loading config: ", err)
+	}
+
 	//Check the authorization if exist
-	a, err := a.CheckPermission()
+	a, err = a.CheckPermission()
 	if err != nil {
 		return a, err
 	}
@@ -141,16 +147,8 @@ func (a CustomRequest) VerifyJwsToken() (CustomRequest, error) {
 	}
 	claims := &Claims{}
 
-	var _config config.Config
-	err := config.LoadConfiguration(&_config)
-
-	if err != nil {
-		logs.Save("customrequest", "VerifyJwsToken", "Error loading config", logs.Error, err.Error())
-		return a, err
-	}
-
 	token, err := jwt.ParseWithClaims(cookie, claims, func(token *jwt.Token) (interface{}, error) {
-		return []byte(_config.SecretKey), nil
+		return []byte(a.Config.SecretKey), nil
 	})
 	if err != nil || !token.Valid {
 		logs.Save("customrequest", "VerifyJwsToken", "Error parsing JSON token", logs.Error, err.Error())

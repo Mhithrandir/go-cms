@@ -1,0 +1,16 @@
+<div id="content" class="content">
+    <app-menu [menu]="records"></app-menu>
+    <div class="render">
+        <router-outlet></router-outlet>
+    </div>
+</div>
+<div id="error" class="error-message" [@showError]="error != null ? 'open' : 'closed'">
+    <label>{{ error }}</label>
+    <span class="icon" (click)="closeError()">&times;</span>
+</div>
+<app-dialog
+    [title]="'Delete Item'"
+    [dialogType]="dialogType"
+    *ngIf="dialogType == 2"
+    (cancelClick)="CancelDialogClick()"
+    (deleteClick)="DeletelDialogClick()"></app-dialog>

@@ -1,10 +1,4 @@
-<ul id="mainMenu">
-    {{ range $m := .MainMenu }}
-    <li>
-        {{ template "menu-item" $m }}
-    </li>
-    {{end}}
-</ul>
+{{ template "menu" .MenuName }}
 <script src="scripts/monaco-editor/min/vs/loader.js"></script>
 <script src="scripts/monaco-editor/min/vs/editor/editor.main.nls.js"></script>
 <script src="scripts/monaco-editor/min/vs/editor/editor.main.js"></script>
@@ -19,7 +13,7 @@
         border: 1px solid gray;
     }
 </style>
-<div>
+<div class="render">
     <h2>Database</h2>
     <div style="display: grid; grid-template-columns: 1fr 9fr;column-gap: 15px;">
         <ul id="dati"></ul>

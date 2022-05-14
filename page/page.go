@@ -12,8 +12,8 @@ import (
 //ParseRoute handle the func specified in the apirequest
 func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
-	// case "home":
-	// 	home(request)
+	case "home":
+		home(request)
 	case "login":
 		login(request)
 	case "logout":
@@ -32,6 +32,8 @@ func ParseRoute(request customrequest.CustomRequest) {
 		register(request)
 	case "componenteditor":
 		componenteditor(request)
+	case "sheetelement":
+		sheetelement(request)
 	default:
 		staticContent(request)
 	}
@@ -56,7 +58,7 @@ func common(request customrequest.CustomRequest, pathTemplate string, params map
 	defer commons.ExecuteFooter(request)
 
 	//Get the template
-	template, err := LoadTemplate(pathTemplate, "www/templates/components/menu-item.htm")
+	template, err := LoadTemplate(pathTemplate, "www/templates/system/menu.htm")
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -71,12 +73,13 @@ func common(request customrequest.CustomRequest, pathTemplate string, params map
 		menuName = "MainMenuBe"
 		data["Title"] = "Back End"
 	}
-	result, err := menu.LoadMenu(menuName, request.Claims.IDUserType, -1)
-	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
-		return
-	}
-	data["MainMenu"] = result
+	// result, err := menu.LoadMenu(menuName, request.Claims.IDUserType, -1)
+	// if err != nil {
+	// 	errorpages.InternalServerError(request, err.Error())
+	// 	return
+	// }
+	// data["MainMenu"] = result
+	data["MenuName"] = menuName
 	data["User"] = request.Claims
 
 	if params != nil {
@@ -159,6 +162,31 @@ func componenteditor(request customrequest.CustomRequest) {
 	common(request, "www/templates/views/componenteditor.htm", nil)
 }
 
+func sheetelement(request customrequest.CustomRequest) {
+	common(request, "www/templates/views/sheetelements.htm", nil)
+}
+
+func home(request customrequest.CustomRequest) {
+	DB = request.DB
+
+	commons.ExecuteHeader(request)
+	defer commons.ExecuteFooter(request)
+
+	template, err := LoadTemplate("www/templates/views/index.htm")
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+
+	//Execute the template
+	err = template.Execute(request.Writer, nil)
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+	// common(request, "www/templates/views/index.htm", nil)
+}
+
 func staticContent(request customrequest.CustomRequest) {
 	//Set the database variable
 	component.DB = request.DB
@@ -169,7 +197,7 @@ func staticContent(request customrequest.CustomRequest) {
 	} else {
 		route = "fe/" + request.Func
 	}
-	result, err := component.GetComponent(route, request.Claims.IDUserType)
+	result, err := component.LoadComponent(route, request.Claims.IDUserType)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -183,5 +211,16 @@ func staticContent(request customrequest.CustomRequest) {
 	params := make(map[string]interface{})
 	params["Content"] = result[0].Content
 
+	// comm := template.New("staticTemplate")
+	// comm, err = comm.Parse(result[0].Content)
+	// if err != nil {
+	// 	errorpages.InternalServerError(request, err.Error())
+	// 	return
+	// }
+	// err = comm.Execute(request.Writer, nil)
+	// if err != nil {
+	// 	errorpages.InternalServerError(request, err.Error())
+	// 	return
+	// }
 	common(request, "www/templates/system/static.htm", params)
 }

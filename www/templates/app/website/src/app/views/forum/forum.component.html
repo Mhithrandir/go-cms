@@ -1,0 +1,84 @@
+<app-table [table]="table" (edited)="Edit($event)" (deleted)="OpenDeleteDialog($event.ID, 'forum', 'delete');" (added)="AddTopic()" (rowselected)="OpenTopic($event)">
+</app-table>
+
+<!--
+    Mostrare tutti i messaggi del topic specifico
+-->
+
+<div *ngIf="selectedRecord != null && selectedRecord.Open" class="mt-1 post-message">
+    <div *ngFor="let m of selectedRecord.Messages" class="message">
+        <span [innerHTML]="m.Message"></span>
+        <span class="date">
+            Posted by {{ m.Author.Username }}
+            <span class="ml-1">{{ m.EditDate | date : 'dd-MM-yyyy - HH:mm:ss' }}</span>
+            <span class="ml-1">
+                <button class="btn-warning">Edit</button>
+                <button class="btn-error ml-1">Delete</button>
+            </span>
+        </span>
+    </div>
+    <form [formGroup]="frmGroup" class="grid-1 mt-1" method="post" (ngSubmit)="onSubmit()">
+        <app-form-control
+            [label]="'Post Message'"
+            [controlName]="'msg'"
+            [controlType]="3"
+            [frmGroup]="frmGroup"></app-form-control>
+        <button type="submit" class="btn unselectable mt-1" [disabled]="frmGroup.invalid">Post</button>
+    </form>
+</div>
+
+<!--<div *ngFor="let r of records" class="topic">
+    <header (click)="OpenTopic(r)">
+        <img src="{{ r.Icon }}">
+        <span>{{ r.Title }}</span>
+        <span>{{ r.Author.Username }}</span>
+        <span><span *ngIf="r.Closed">Closed</span></span>
+        <span>
+            <button class="btn-warning" (click)="Edit(r);">Edit</button>
+            <button class="btn-error ml-1" (click)="OpenDeleteDialog(r.ID, 'user', 'delete');">Delete</button>
+        </span>
+    </header>
+    <div class="ml-1" *ngIf="r.Open">
+        <form [formGroup]="frmGroup" class="grid-1" method="post" (ngSubmit)="onSubmit()">
+            <app-form-control
+                [label]="'Message'"
+                [controlName]="'msg'"
+                [controlType]="3"
+                [frmGroup]="frmGroup"></app-form-control>
+            <button type="submit" class="btn unselectable" [disabled]="frmGroup.invalid">Post</button>
+        </form>
+    </div>
+</div>
+<table id="dati">
+    <thead>
+        <tr>
+            <th scope="col">Title</th>
+            <th scope="col">Icon</th>
+            <th scope="col">Closed</th>
+            <th scope="col">Author</th>
+            <th scope="col">#</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let r of records">
+            <td>{{ r.Title }}</td>
+            <td><img src="{{ r.Icon }}"/></td>
+            <td><span *ngIf="r.Closed">&times;</span></td>
+            <td>{{ r.Author.Username }}</td>
+            <td>
+                <button class="btn-warning" (click)="Edit(r);">Edit</button>
+                <button class="btn-error ml-1" (click)="OpenDeleteDialog(r.ID, 'user', 'delete');">Delete</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<div id="pagination" class="mt-1">
+    <button class="btn btn-primary" (click)="AddTopic()">Add Topic</button>
+</div>-->
+<app-dialog
+    [title]="'Edit Topic'"
+    [dialogType]="dialogType"
+    *ngIf="dialogType != 99 && dialogType != 2"
+    (cancelClick)="CancelDialogClick()">
+    <app-edit-topic [selectedTopic]="selectedRecord"  (saved)="SavedDialogClick($event, dialogType)"></app-edit-topic>
+</app-dialog>

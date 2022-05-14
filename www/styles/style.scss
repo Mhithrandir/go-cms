@@ -9,15 +9,21 @@ html, body {
     display: grid;
     grid-template-columns: 1fr 9fr;
     column-gap: 15px;
+    .render {
+        margin-left: 5px;
+        margin-right: 10px;
+    }
 }
-#mainMenu, #mainMenu > li > ul {
+.menu, .menu > li > ul {
     list-style-type: none;
     margin: 0;
     padding: 0;
     li {
         margin-left: 10px;
-        .menu-header, .menu-header-expanded {
+        .menu-header, .menu-header-expanded, .active {
             text-decoration: none;
+            border-left: 4px solid;
+            border-color: lighten($color: $base-color, $amount: 10);
             color: $font-color;
             cursor: pointer;
             padding: $padding-base;
@@ -28,11 +34,11 @@ html, body {
             width: 100%;
             &:hover {
                 background: lighten($color: $base-color, $amount: 5);
-                color: orange;
+                border-color: orange;
+                color: #e4ff00;
             }
             .icon-menu, .icon-menu-expanded {
                 font-weight: bold;
-                // font-size: 20px;
                 transform: rotate(225deg) translateY(-4px);
                 display: inline-block;
                 margin-right: 5px;
@@ -44,17 +50,29 @@ html, body {
         }
         .menu-header-expanded {
             background: lighten($color: $base-color, $amount: 5);
-            color: orange;
+            border-color: lighten($color: $base-color, $amount: 15);
+            color: #e4ff00;
             &:hover {
                 background: lighten($color: $base-color, $amount: 10);
-                color: lighten($color: orange, $amount: 10);
+                border-color: lighten($color: orange, $amount: 10);
+                color: lighten($color: #e4ff00, $amount: 10);
+            }
+        }
+        .active {
+            background-color: orange;
+            border-color: lighten($color: orange, $amount: 30);
+            color: black;
+            &:hover {
+                background-color: darken($color: orange, $amount: 10);
+                border-color: lighten($color: orange, $amount: 10);
+                color: black;
             }
         }
     }
 }
 table {
     border: 1px solid $base-color;
-    width: 99%;
+    width: 100%;
     border-collapse: collapse;
     th, td {
         background: $base-color;
@@ -145,17 +163,6 @@ table {
 #delete-message {
     padding: $padding-base;
 }
-#error-message {
-    position: fixed;
-    bottom: 5px;
-    left: 5px;
-    right: 5px;
-    background: $error-button;
-    color: lighten($color: $error-button, $amount: 20);
-    padding: $padding-base;
-    border: 2px solid darken($color: $error-button, $amount: 20);
-    border-radius: $border-radius-base;
-}
 #dati {
     list-style: none;
     padding: 0;
@@ -167,10 +174,10 @@ table {
             border-radius: 2.5px;
             margin-top: 5px;
             display: inline-block;
-            width: 98%;
+            width: 100%;
             .icon-expander, .icon-expander-expanded {
                 font-weight: bold;
-                transform: rotate(225deg) translateY(-4px);
+                transform: rotate(238deg) translateY(-4px);
                 border: 0;
                 display: inline-block;
                 cursor: pointer;
@@ -184,11 +191,46 @@ table {
             }
         }
     }
-    table {
-        display: none;
-    }
+    // table {
+    //     display: none;
+    // }
 }
 .children-ul{
     list-style: none;
     padding-left: 20px;
+}
+.tab {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    li, .active {
+        text-decoration: none;
+        border-top: 4px solid;
+        border-color: lighten($color: $base-color, $amount: 10);
+        color: $font-color;
+        cursor: pointer;
+        padding: $padding-base;
+        border-radius: 2.5px;
+        background: $base-color;
+        margin-top: 5px;
+        display: inline-block;
+        &:hover {
+            background: lighten($color: $base-color, $amount: 5);
+            border-color: orange;
+            color: #e4ff00;
+        }
+    }
+    .active {
+        background-color: orange;
+        border-color: lighten($color: orange, $amount: 30);
+        color: black;
+        &:hover {
+            background-color: darken($color: orange, $amount: 10);
+            border-color: lighten($color: orange, $amount: 10);
+            color: black;
+        }
+    }
+}
+#refer-parent {
+    display: grid;
 }

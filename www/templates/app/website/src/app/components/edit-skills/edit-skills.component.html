@@ -1,0 +1,13 @@
+<form [formGroup]="frmGroup" class="grid-1" method="post" (ngSubmit)="onSubmit()">
+    <app-form-control
+        *ngFor="let r of skills"
+        [label]="r.Element.Name + ' (' + r.Element.ReferenceSheetElement.Name + ')'"
+        [controlName]="r.Element.ID.toString()"
+        [controlType]="1"
+        class="ml-1"
+        (onChanged)="ValueChanged()"
+        [frmGroup]="frmGroup"></app-form-control>
+    <div class="mt-1">
+        <button type="submit" class="btn unselectable override-dialog" [disabled]="frmGroup.invalid">Next</button>
+    </div>
+</form>

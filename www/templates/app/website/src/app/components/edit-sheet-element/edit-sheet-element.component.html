@@ -1,0 +1,81 @@
+<form [formGroup]="frmGroup" class="grid-1" method="post" (ngSubmit)="onSubmit()">
+    <app-expander [IsExpanded]="true">
+        <div header>Campi base</div>
+        <div class="grid-1">
+            <app-form-control
+                [label]="'* Type'"
+                [controlName]="'type'"
+                [controlType]="2"
+                [dataList]="elementTypes"
+                [descField]="'Name'"
+                [frmGroup]="frmGroup"></app-form-control>
+            <app-form-control
+                [label]="'* Name'"
+                [controlName]="'name'"
+                [frmGroup]="frmGroup"></app-form-control>
+            <app-form-control
+                [label]="'* Description'"
+                [controlName]="'description'"
+                [controlType]="3"
+                [frmGroup]="frmGroup"></app-form-control>
+            <div *ngIf="this.frmGroup.controls['type'].value == 6 || this.frmGroup.controls['type'].value == 7">
+                <app-form-control
+                    [label]="'* Image'"
+                    [controlName]="'image'"
+                    [controlType]="8"
+                    (onFileChanged)="onFileChanged($event)"
+                    [frmGroup]="frmGroup"></app-form-control>
+            </div>
+            <div class="mt-1 grid-1" *ngIf="this.frmGroup.controls['type'].value == 1 || this.frmGroup.controls['type'].value == 2">
+                <app-form-control
+                    [label]="'* Min'"
+                    [controlName]="'min'"
+                    [controlType]="1"
+                    class="ml-1"
+                    [frmGroup]="frmGroup"></app-form-control>
+                <app-form-control
+                    [label]="'* Max'"
+                    [controlName]="'max'"
+                    [controlType]="1"
+                    class="ml-1"
+                    [frmGroup]="frmGroup"></app-form-control>
+            </div>
+            <div class="mt-1 grid-1" *ngIf="this.frmGroup.controls['type'].value == 1 || this.frmGroup.controls['type'].value == 2 || this.frmGroup.controls['type'].value == 4">
+                <app-form-control
+                    [label]="'* Cost'"
+                    [controlName]="'cost'"
+                    [controlType]="1"
+                    class="ml-1"
+                    [frmGroup]="frmGroup"></app-form-control>
+            </div>
+            <div class="mt-1 grid-1" *ngIf="this.frmGroup.controls['type'].value == 2 || this.frmGroup.controls['type'].value == 4">
+                <label for="referenceSheetElement">Reference Sheet Element</label>
+                <select class="form-control" (change)="Selected1(true)" id="referenceSheetElement" formControlName="referenceSheetElement">
+                    <optgroup *ngFor="let t of elementTypes" id="{{ t.Name }}" label="{{ t.Name }}">
+                        <option *ngFor="let r of elements[t.Name].Rows" value="{{ r.ID }}">{{ r.Name }}</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+    </app-expander>
+    <app-expander class="mt-1" *ngIf="this.frmGroup.controls['type'].value == 3 || this.frmGroup.controls['type'].value == 4">
+        <div header>Abilitated for:</div>
+        <div class="mt-1 abilitated">
+            <select class="form-control h-100" size="10" (change)="Selected1(true)" formControlName="parent1">
+                <optgroup *ngFor="let t of elementTypes" id="{{ t.Name }}" label="{{ t.Name }}">
+                    <option *ngFor="let r of elements[t.Name].Rows" value="{{ r.ID }}">{{ r.Name }}</option>
+                </optgroup>
+            </select>
+            <div style="display: grid;" class="ml-1">
+                <button type="button" class="btn" (click)="Move(false)">&gt;&gt;</button>
+                <button type="button" class="btn mt-1" (click)="Move(true)">&lt;&lt;</button>
+            </div>
+            <select class="form-control h-100 ml-1" size="10" (change)="Selected1(false)" formControlName="parent2">
+                <option *ngFor="let r of selectedSheetElement.AbilitatedForSheetElement" value="{{ r.ID }}">{{ r.Name }}</option>
+            </select>
+        </div>
+    </app-expander>
+    <label class="unselectable mt-1">* Mandatory fields</label>
+    <label class="unselectable mt-1 error-message" *ngIf="error != '' && error != null">{{ error }}</label>
+    <button type="submit" class="btn unselectable override-dialog" [disabled]="frmGroup.invalid">Save</button>
+</form>

@@ -1,11 +1,5 @@
-<ul id="mainMenu">
-    {{ range $m := .MainMenu }}
-    <li>
-        {{ template "menu-item" $m }}
-    </li>
-    {{end}}
-</ul>
-<div>
+{{ template "menu" .MenuName }}
+<div class="render">
     <h2>Menus</h2>
     <ul id="dati"></ul>
     <button class="btn mt-1" onclick="Add();">Add menu item</button>
@@ -77,8 +71,8 @@
             });
             menuNames.forEach((m) => {
                 let tr = $("<tr></tr>");
-                let li = $("<li><header onclick='Toggle(this, \"" + m + "\");'><span class='icon-expander'>:.</span><span class='ml-1'>" + m + "<span></header></li>");
-                let table = $("<table id='" + m + "'></table>");
+                let li = $("<li><header onclick='Toggle(this, \"menuPlain_" + m + "\");'><span class='icon-expander'>:.</span><span class='ml-1'>" + m + "<span></header></li>");
+                let table = $("<table id=\"menuPlain_" + m + "\"></table>");
                 let trh = $("<tr></tr>");
                 $(trh).append($("<th>Name</th>"));
                 $(trh).append($("<th>Parent</th>"));

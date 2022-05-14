@@ -1,0 +1,23 @@
+<div style="display: grid; grid-template-columns: 1fr 9fr;column-gap: 15px; heigth: 100%">
+    <ul id="dati">
+        <app-tree-node *ngFor="let d of records" [title]="d.Database" (expanded)="Expanded(d.Database)">
+            <div class="table-container" style="overflow: auto;">
+                <app-tree-node *ngFor="let t of tables" [title]="t.TABLE_NAME">
+                
+                </app-tree-node>
+            </div>
+        </app-tree-node>
+    </ul>
+    <div id="table">
+        <button class="btn-warning" onclick="$('#sql-editor').toggle();">SQL</button>
+        <div id="sql-editor">
+            <button class="btn mt-1" onclick="ExecuteSql();">Execute</button>
+            <div id="content-editor" class="mt-1">
+                
+            </div>
+        </div>
+        <div id="table-content" class="mt-1">
+            
+        </div>
+    </div>
+</div>

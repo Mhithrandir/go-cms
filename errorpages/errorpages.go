@@ -2,11 +2,9 @@ package errorpages
 
 import (
 	"cms/commons"
-	"cms/config"
 	"cms/customrequest"
 	"encoding/json"
 	"html/template"
-	"log"
 	"net/http"
 )
 
@@ -22,16 +20,9 @@ func LoadTemplate(path ...string) (*template.Template, error) {
 
 //SetApiHeaders set headers for allowing ajax call
 func SetApiHeaders(request customrequest.CustomRequest, status int, value interface{}) {
-	var _config config.Config
-	err := config.LoadConfiguration(&_config)
-
-	if err != nil {
-		log.Fatal("Error loading config: ", err)
-	}
-
-	request.Writer.Header().Set("Access-Control-Allow-Origin", _config.Origin)
-	request.Writer.Header().Set("Access-Control-Allow-Methods", _config.Methods)
-	request.Writer.Header().Set("Access-Control-Allow-Headers", _config.Headers)
+	request.Writer.Header().Set("Access-Control-Allow-Origin", request.Config.Origin)
+	request.Writer.Header().Set("Access-Control-Allow-Methods", request.Config.Methods)
+	request.Writer.Header().Set("Access-Control-Allow-Headers", request.Config.Headers)
 	request.Writer.Header().Set("Content-Type", "application/json")
 	request.Writer.WriteHeader(status)
 	json.NewEncoder(request.Writer).Encode(value)

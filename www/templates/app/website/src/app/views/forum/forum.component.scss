@@ -1,0 +1,17 @@
+.post-message {
+    border: 1px solid white;
+    border-radius: 2.5px;
+    padding: 5px;
+}
+.message {
+    display: grid;
+    border: 1px solid white;
+    padding: 5px;
+    &:hover {
+        background-color: orange;
+        color: black;
+    }
+    .date {
+        text-align: right;
+    }
+}

@@ -1,0 +1,39 @@
+<form [formGroup]="frmGroup" class="grid-1" method="post" (ngSubmit)="onSubmit()">
+    <app-form-control
+        [label]="'* Name'"
+        [controlName]="'name'"
+        [frmGroup]="frmGroup"></app-form-control>
+    <app-form-control
+        [label]="'* Image'"
+        [controlName]="'image'"
+        [controlType]="8"
+        (onFileChanged)="onFileChanged($event)"
+        [frmGroup]="frmGroup"></app-form-control>
+    <app-form-control
+        [label]="'* Description'"
+        [controlName]="'description'"
+        [controlType]="3"
+        [frmGroup]="frmGroup"></app-form-control>
+    <app-form-control
+        [label]="'* Price'"
+        [controlName]="'price'"
+        [controlType]="1"
+        [frmGroup]="frmGroup"></app-form-control>
+    <app-form-control
+        [label]="'* Size'"
+        [controlName]="'size'"
+        [controlType]="2"
+        [dataList]="sizes"
+        [descField]="'Size'"
+        [frmGroup]="frmGroup"></app-form-control>
+    <app-form-control
+        [label]="'* Type'"
+        [controlName]="'type'"
+        [controlType]="2"
+        [dataList]="equipTypes"
+        [descField]="'Name'"
+        [frmGroup]="frmGroup"></app-form-control>
+    <label class="unselectable mt-1">* Mandatory fields</label>
+    <label class="unselectable mt-1 error-message" *ngIf="error != '' && error != null">{{ error }}</label>
+    <button type="submit" class="btn unselectable override-dialog" [disabled]="frmGroup.invalid">Save</button>
+</form>

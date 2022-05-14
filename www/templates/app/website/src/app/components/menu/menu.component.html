@@ -1,0 +1,14 @@
+<ul class="menu">
+    <li *ngFor="let m of menu">
+        <a *ngIf="m.Childrens == null" class="menu-header" [routerLink]="m.Route.Path" routerLinkActive="active">{{ m.Name }}</a>
+        <ng-container *ngIf="m.Childrens != null">
+            <span [ngClass]="{ 'menu-header': !m.IsExpanded, 'menu-header-expanded': m.IsExpanded }" (click)="toggle(m)">
+                <span [ngClass]="{ 'icon-menu': !m.IsExpanded, 'icon-menu-expanded': m.IsExpanded }"></span>
+                {{ m.Name }}
+            </span>
+            <div [@openClose]="m.IsExpanded ? 'open' : 'closed'">
+                <app-menu [menu]="m.Childrens"></app-menu>
+            </div>
+        </ng-container>
+    </li>
+</ul>

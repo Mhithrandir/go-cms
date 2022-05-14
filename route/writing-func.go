@@ -31,8 +31,8 @@ func (r Route) Add() error {
 	return r.Update()
 }
 
-//Delete a route
-func Delete(id int64) error {
+//DeleteRecord a route
+func DeleteRecord(id int64) error {
 	r, err := GetRouteFromID(id)
 	if err != nil {
 		return err

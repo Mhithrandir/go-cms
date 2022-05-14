@@ -1,0 +1,15 @@
+<app-tabs (selectedtab)="SelectedTab($event)">
+    <app-tab *ngFor="let t of equipTypes" [title]="t.Name">
+        <div class="mt-1">
+            <app-table [table]="table" (edited)="Edit($event)" (deleted)="OpenDeleteDialog($event.ID, 'equipment', 'delete')">
+            </app-table>
+        </div>
+    </app-tab>
+</app-tabs>
+<app-dialog
+    [title]="editTitle"
+    [dialogType]="dialogType"
+    *ngIf="dialogType != 99 && dialogType != 2"
+    (cancelClick)="CancelDialogClick()">
+    <app-edit-equip [selectedEquip]="selectedRecord" (saved)="SavedDialogClick($event, dialogType)" [equipTypes]="equipTypes"></app-edit-equip>
+</app-dialog>

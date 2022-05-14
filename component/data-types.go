@@ -8,12 +8,18 @@ import (
 //DB variables to handle database
 var DB *database.Database
 
-type Component struct {
-	Name    string `json:"Name"`
-	Content string `json:"Content"`
-	IDRoute int64  `json:"IDRoute"`
-	// Permissions []ComponentPermission `json:"Permissions"`
-	Route route.Route `json:"Route"`
+type EditorElement struct {
+	IDElement           string          `json:"IDElement"`
+	Type                string          `json:"Type"`
+	Childrens           []EditorElement `json:"Childrens"`
+	Columns             int64           `json:"Columns"`
+	VerticalOrientation bool            `json:"VerticalOrientation"`
+	Content             string          `json:"Content"`
+	ImageName           string          `json:"ImageName"`
+	IsClass             bool            `json:"IsClass"`
+	IDParent            int64           `json:"IDParent"`
+	IDRoute             int64           `json:"IDRoute"`
+	Route               route.Route     `json:"Route"`
 	database.BaseTable
 }
 

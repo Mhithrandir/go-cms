@@ -1,0 +1,315 @@
+{{ template "menu" .MenuName }}
+<div class="render">
+    <h2>Sheet elements</h2>
+    <ul class="tab" id="tab">
+        <!-- <li id="tab-race" onclick="SelectedTab(this)">Race</li>
+        <li id="tab-class" onclick="SelectedTab(this)">Class</li>
+        <li id="tab-ability" onclick="SelectedTab(this)">Ability</li>
+        <li id="tab-skill" onclick="SelectedTab(this)">Skill</li>
+        <li id="tab-automatic-bundle" onclick="SelectedTab(this)">Automatic Bundle</li>
+        <li id="tab-optionals-bundle" onclick="SelectedTab(this)">Optionals Bundle</li> -->
+    </ul>
+    <div id="dati">
+        
+    </div>
+    <button class="btn mt-1" onclick="Add()">Add sheet element</button>
+</div>
+<div class="dialog" id="edit-dialog">
+    <div class="body">
+        <header>Edit Route</header>
+        <div class="content">
+            <form class="layout" id="edit-route">
+                <label for="name">Name</label>
+                <input id="name" class="form-control">
+                <label for="description">Description</label>
+                <textarea id="description" class="form-control"></textarea>
+                <label for="type">Type</label>
+                <select id="type" name="type" class="form-control" onchange="TypeSelectedChanged()"></select>
+                <div id="values" class="mt-1">
+                    <label for="min">Min</label>
+                    <input id="min" type="number" class="form-control">
+                    <label for="max">Max</label>
+                    <input id="max" type="number" class="form-control">
+                    <label for="cost">Cost</label>
+                    <input id="cost" type="number" class="form-control">
+                </div>
+                <div id="refer-parent" class="mt-1">
+                    <label for="primary-parent">Reference element</label>
+                    <select id="primary-parent" class="form-control">
+                        <option value="-1">None</option>
+                    </select>
+                    <label for="secondary-parent">Automatic for</label>
+                    <div style="display: grid; grid-template-columns: 1fr 30px 1fr;">
+                        <select id="secondary-parent" class="form-control" size="10" style="height: 100%;">
+                            <option value="-1">None</option>
+                        </select>
+                        <div style="display: grid;" class="ml-1">
+                            <button type="button" class="btn" onclick="Move('right')">&gt;&gt;</button>
+                            <button type="button" class="btn mt-1" onclick="Move('left')">&lt;&lt;</button>
+                        </div>
+                        <select id="sel-secondary" class="form-control ml-1" size="10" style="height: 100%;">
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <footer style="text-align: right;">
+            <button class="btn" onclick="Save()">Save</button>
+            <button class="btn-error" onclick="CloseForm()">Cancel</button>
+        </footer>
+    </div>
+</div>
+<script>
+    var rows = [];
+    var sheetelementstype = [];
+    var selectedRow;
+    $(document).ready(() => {
+        $("#edit-dialog").hide();
+        $("#values").hide();
+        $("#refer-parent").hide();
+        Get("../api/sheetelement/getsheetelementypes", 0).done(function(data) {
+            sheetelementstype = data.Data;
+            sheetelementstype.forEach((t) => {
+                $("#type").append($("<option value=\"" + t.Name + "\">" + t.Name + "</option>"));
+                $("#tab").append($("<li id=\"tab-\"" + t.Name.toLowerCase().replace(" ", "-") + "\" class=\"ml-1\" onclick=\"SelectedTab(this)\">" + t.Name + "</li>"));
+            });
+            Get("../api/sheetelement/getsheetelementstable", 0).done(function(data) {
+                sheetelementstype.forEach((t) => {
+                    // console.log(data.Data[t.Name]);
+                    let tableHeader = "<table id=\"table-" + t.Name.toLowerCase().replace(" ", "-") + "\" class=\"mt-1\"><tr>";
+                    data.Data[t.Name].Columns.forEach((c) => {
+                        tableHeader += "<th>" + c + "</th>";
+                    });
+                    tableHeader += "<th>#</th></tr></table>";
+                    let table = $(tableHeader);
+                    PrintContent(data.Data[t.Name].Rows, table, t.Name + "-group", t.Name, data.Data[t.Name].Columns);
+                });
+            });
+            // Load()
+        });
+    });
+    function SelectedTab(elem) {
+        $("li[id^='tab-']").removeClass("active");
+        $(elem).addClass("active");
+        $("table[id^='table-']").hide();
+        $("#table-" + $(elem).text().toLowerCase().replace(" ", "-")).show(800);
+    }
+    function PrintContent(values, table, idgroup, label, fields) {
+        if(values == null) return;
+        valuesGroup = $("<optgroup id=\"" + idgroup + "\" label=\"" + label + "\"></optgroup>");
+        valuesGroup2 = $("<optgroup id=\"" + idgroup + "\" label=\"" + label + "\"></optgroup>");
+        values.forEach((row) => {
+            let tr = $("<tr></tr>");
+            fields.forEach((f) => {
+                if(f.indexOf("\.") > -1 ){
+                    $(tr).append("<td>" + row[f.split('.')[0]][f.split('.')[1]] + "</td>");
+                }
+                else {
+                    if(row[f] == null) {
+                        $(tr).append("<td>*</td>");
+                    }
+                    else {
+                        let value = "<td>" + row[f] + "</td>";
+                        if((typeof row[f]) == "object") {
+                            value = "<td style=\"text-align: start;\">";
+                            row[f].forEach((r) => {
+                                value += "-[" + r.SheetElementType.Name + "]:" + r.Name + ",";
+                            });
+                            value = value.substring(0, value.length - 1);
+                            value = value.replace(/,/g, "<br>");
+                            value += "</td>";
+                        }
+                        $(tr).append($(value));
+                    }
+                }
+            });
+            $(tr).append("<td><button class=\"btn-warning\" onclick=\"Edit(" + row.ID + ");\">Edit</button><button class=\"btn-error ml-1\" onclick=\"SetDeleteMessage(" + row.ID + ", '');\">Delete</button></td>");
+            $(table).append($(tr));
+            $(valuesGroup).append("<option value=\"" + row.ID + "\">" + row.Name + "</option>");
+            $(valuesGroup2).append("<option value=\"" + row.ID + "\">" + row.Name + "</option>");
+        });
+        rows = rows.concat(values);
+        $("#dati").append($(table));
+        $(table).hide();
+        $("#primary-parent").append(valuesGroup);
+        $("#secondary-parent").append(valuesGroup2);
+    }
+    function Load() {
+        $("#dati").empty();
+        // sheetelementstype.forEach((r) => {
+
+        // });
+        let table = $("<table id=\"table-race\" class=\"mt-1\"><tr><th>Name</th><th>Description</th><th>#</th></tr>");
+        Get("../api/sheetelement/getsheetelements?type=" + sheetelementstype[0].Name, 0).done(function(data) {
+                PrintContent(data.Data, table, "races-group", "Races", data.Fields);
+        });
+        // sheetelementstype.forEach((t) => {
+        //     window.setTimeout(() => {
+        //         Get("../api/sheetelement/getsheetelements?type=" + t.Name, 0).done(function(data) {
+        //             PrintContent(data.Data, table, "races-group", "Races", data.Fields);
+        //         });
+        //     }, 1000);
+        //     return;
+        // });
+        // Get("../api/sheetelement/getsheetelements?type=race", 0).done(function(data) {
+        //     PrintContent(data.Data, table, "races-group", "Races", ["Name", "Description"]);
+        //     let table1 = $("<table id=\"table-class\" class=\"mt-1\"><tr><th>Name</th><th>Description</th><th>Reference Element</th><th>Abilitated For</th><th>#</th></tr>");
+        //     Get("../api/sheetelement/getsheetelements?type=class", 0).done(function(data) {
+        //         PrintContent(data.Data, table1, "classes-group", "Classes", ["Name", "Description", "ReferenceSheetElement.Name", "AbilitatedForSheetElement"]);
+        //         let table2 = $("<table id=\"table-ability\" class=\"mt-1\"><tr><th>Name</th><th>Description</th><th>Min</th><th>Max</th><th>Cost</th><th>Reference Element</th><th>Abilitated For</th><th>#</th></tr>");
+        //         Get("../api/sheetelement/getsheetelements?type=ability", 0).done(function(data) {
+        //             PrintContent(data.Data, table2, "abilities-group", "Abilities", ["Name", "Description", "Min", "Max", "Cost", "ReferenceSheetElement.Name", "AbilitatedForSheetElement"]);
+        //             let table3 = $("<table id=\"table-skill\" class=\"mt-1\"><tr><th>Name</th><th>Description</th><th>Min</th><th>Max</th><th>Cost</th><th>Reference Element</th><th>Abilitated For</th><th>#</th></tr>");
+        //             Get("../api/sheetelement/getsheetelements?type=skill", 0).done(function(data) {
+        //                 PrintContent(data.Data, table3, "skills-group", "Skills", ["Name", "Description", "Min", "Max", "Cost", "ReferenceSheetElement.Name", "AbilitatedForSheetElement"]);
+        //                 let table4 = $("<table id=\"table-automatic-bundle\" class=\"mt-1\"><tr><th>Name</th><th>Description</th><th>Reference Element</th><th>Abilitated For</th><th>#</th></tr>");
+        //                 Get("../api/sheetelement/getsheetelements?type=Automatic%20Bundle", 0).done(function(data) {
+        //                     PrintContent(data.Data, table4, "automatic-bundle-group", "Automatic Bundles", ["Name", "Description", "ReferenceSheetElement.Name", "AbilitatedForSheetElement"]);
+        //                     let table5 = $("<table id=\"table-optionals-bundle\" class=\"mt-1\"><tr><th>Name</th><th>Description</th><th>Cost</th><th>Reference Element</th><th>Abilitated For</th><th>#</th></tr>");
+        //                     Get("../api/sheetelement/getsheetelements?type=Optionals%20Bundle", 0).done(function(data) {
+        //                         console.log(data);
+        //                         PrintContent(data.Data, table5, "optional-bundle-group", "Optionals Bundles", ["Name", "Description", "Cost", "ReferenceSheetElement.Name", "AbilitatedForSheetElement"]);
+        //                     });
+        //                 });
+        //             });
+        //         });
+        //     });
+        // });
+    }
+    function TypeSelectedChanged() {
+        let selectedType = $("#type").val();
+        switch(selectedType) {
+            case "Race":
+                $("#refer-parent").hide();
+                $("#values").hide();
+                break;
+            case "Class":
+                $("#refer-parent").show();
+                $("#abilities-group").hide();
+                $("#skills-group").hide();
+                $("#values").hide();
+                break;
+            case "Ability":
+                $("#refer-parent").show();
+                $("#abilities-group").hide();
+                $("#values").show();
+                break;
+            case "Skill":
+                $("#refer-parent").show();
+                $("#abilities-group").show();
+                $("#skills-group").hide();
+                $("#values").show();
+                break;
+            case "Automatic Bundle":
+            case "Optionals Bundle":
+            case "Free Bundle":
+                $("#refer-parent").show();
+                $("#abilities-group").show();
+                $("#skills-group").show();
+                $("#values").hide();
+                break;
+                $("#values").hide();
+                break;
+            default:
+                $("#values").show();
+        }
+    }
+    function Add() {
+        $('#edit-dialog').show();
+        selectedRow = {};
+        selectedRow.IsNew = true;
+    }
+    function CloseForm() {
+        $('#edit-dialog').hide();
+        selectedRow = null;
+    }
+    function Save() {
+        let elem = {};
+        elem.Name = $('#name').val();
+        elem.Description = $('#description').val();
+        elem.Min = parseInt($('#min').val());
+        if(isNaN(elem.Min)) {
+            elem.Min = 0;
+        }
+        elem.Max = parseInt($('#max').val());
+        if(isNaN(elem.Max)) {
+            elem.Max = 0;
+        }
+        elem.Cost = parseInt($('#cost').val());
+        if(isNaN(elem.Cost)) {
+            elem.Cost = 0;
+        }
+        elem.Type = $('#type').val();
+        elem.IDReferenceSheetElement = parseInt($("#primary-parent").val());
+        elem.AbilitatedForSheetElement = [];
+        $("#sel-secondary option").each(function() {
+            elem.AbilitatedForSheetElement.push(JSON.parse("{ \"ID\":" + parseInt(this.value) + " }"));
+        });
+        // console.log(elem);
+        let func = "addsheetelement";
+        if((selectedRow != null) &&(selectedRow.IsNew != null) && (!selectedRow.IsNew)) {
+            func = "updatesheetelements";
+            elem.ID = selectedRow.ID;
+        }
+        Post("sheetelement", func, elem).done(function(data) {
+            Load();
+        }).fail(function(data) {
+            ShowError(data);
+        });
+        $('#edit-dialog').hide();
+    }
+    function Edit(id) {
+        $('#edit-dialog').show();
+        SetSelectedRecord(id);
+        $("#name").val(selectedRow.Name);
+        $("#description").val(selectedRow.Description);
+        $("#min").val(selectedRow.Min);
+        $("#max").val(selectedRow.Max);
+        $("#cost").val(selectedRow.Cost);
+        $("#type").val(selectedRow.Type);
+        $("#primary-parent").val(selectedRow.IDReferenceSheetElement);
+        selectedRow.AbilitatedForSheetElement.forEach((a) => {
+            $("#sel-secondary").append($("<option value=\"" + a.ID + "\">" + a.Name + "</option>"));
+        });
+        // $("#parent").val(selectedRow.IDSheetElement);
+        selectedRow.IsNew = false;
+        TypeSelectedChanged();
+    }
+    function OnDelete() {
+        $('#delete-dialog').hide();
+        Delete("sheetelement", "deletesheetelements", $("#delete-dialog-button").attr("refer-id")).done(function(data) {
+            Load();
+        }).fail(function(data) {
+            ShowError(data);
+        });
+    }
+    function OpenDeleteDialog(id) {
+        SetSelectedRecord(id);
+    }
+    function SetSelectedRecord(id) {
+        rows.forEach((row) => {
+            if(row.ID == id) {
+                selectedRow = row;
+                return;
+            }
+        });
+    }
+    function Move(direction) {
+        if(direction == "left") {
+            $($("#sel-secondary")[0].selectedOptions).remove();
+        }
+        else {
+            let option = $($("#secondary-parent")[0].selectedOptions);
+            let found = false;
+            $("#sel-secondary option").each(function() {
+                if(this.value == $("#secondary-parent").val()) {
+                    found = true;
+                    return;
+                }
+            });
+            if(!found) {
+                $("#sel-secondary").append($(option[0].outerHTML));
+            }
+        }
+    }
+</script>

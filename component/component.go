@@ -2,11 +2,9 @@ package component
 
 import (
 	"cms/commons"
-	"cms/config"
 	"cms/customrequest"
 	"cms/errorpages"
 	"cms/logs"
-	"log"
 	"strconv"
 )
 
@@ -15,12 +13,14 @@ func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "getcomponents":
 		GetComponents(request)
-	case "deletecomponent":
-		DeleteComponent(request)
-	case "addcomponent":
-		AddComponent(request)
-	case "updatecomponent":
-		UpdateComponent(request)
+	case "getcomponent":
+		GetComponent(request)
+	case "delete":
+		Delete(request)
+	case "add":
+		Add(request)
+	case "update":
+		Update(request)
 	default:
 		errorpages.NotFound(request)
 	}
@@ -35,19 +35,14 @@ func GetComponents(request customrequest.CustomRequest) {
 	if val, ok := request.Parameters["page"]; ok {
 		page, err = strconv.Atoi(val)
 		if err != nil {
-			logs.Save("users", "LoadUsers", "Parameter page not valid", logs.Error, err.Error())
+			logs.Save("component", "GetComponents", "Parameter page not valid", logs.Error, err.Error())
 			errorpages.BadRequest(request, err.Error())
 			return
 		}
 	} else {
 		page = 0
 	}
-	var _config config.Config
-	err = config.LoadConfiguration(&_config)
-	if err != nil {
-		log.Fatal("Error loading config: ", err)
-	}
-	result, err := LoadComponents(page, _config.Pagination)
+	result, err := LoadComponents(page, request.Config.Pagination)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -55,17 +50,35 @@ func GetComponents(request customrequest.CustomRequest) {
 	commons.Ok(request, result, 0, 0)
 }
 
-//AddComponents add a component in the database
-func AddComponent(request customrequest.CustomRequest) {
+//GetComponent Load all components
+func GetComponent(request customrequest.CustomRequest) {
 	DB = request.DB
 
-	var componentJSON Component
-	err := request.ParserBodyRequest(&componentJSON)
-	if err != nil {
+	if val, ok := request.Parameters["url"]; ok {
+		result, err := LoadComponent(val, request.Claims.IDUser)
+		if err != nil {
+			errorpages.InternalServerError(request, err.Error())
+			return
+		}
+		commons.Ok(request, result, 0, 0)
+	} else {
+		logs.Save("component", "GetComponent", "Parameter name not valid", logs.Error, "Parameter name not valid")
+		errorpages.BadRequest(request, "Parameter name not valid")
 		return
 	}
+}
 
-	exist, err := componentJSON.Exist()
+//Add add a component in the database
+func Add(request customrequest.CustomRequest) {
+	DB = request.DB
+
+	var elem EditorElement
+	err := request.ParserBodyRequest(&elem)
+	if err != nil {
+		errorpages.BadRequest(request, err.Error())
+		return
+	}
+	exist, err := elem.Exist()
 	if exist && err == nil {
 		errorpages.BadRequest(request, "Component already exist")
 		return
@@ -73,26 +86,50 @@ func AddComponent(request customrequest.CustomRequest) {
 		errorpages.InternalServerError(request, err.Error())
 		return
 	}
-	componentJSON.IDInsertUser = request.Claims.IDUser
-	componentJSON.IDEditUser = request.Claims.IDUser
-	err = componentJSON.Add()
+	elem.IDInsertUser = request.Claims.IDUser
+	elem.IDEditUser = request.Claims.IDUser
+	err = elem.Add()
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 	commons.Ok(request, true, 0, 0)
+
+	// var componentJSON Component
+	// err = request.ParserBodyRequest(&componentJSON)
+	// if err != nil {
+	// 	return
+	// }
+
+	// exist, err := componentJSON.Exist()
+	// if exist && err == nil {
+	// 	errorpages.BadRequest(request, "Component already exist")
+	// 	return
+	// } else if err != nil {
+	// 	errorpages.InternalServerError(request, err.Error())
+	// 	return
+	// }
+	// componentJSON.IDInsertUser = request.Claims.IDUser
+	// componentJSON.IDEditUser = request.Claims.IDUser
+	// err = componentJSON.Add()
+	// if err != nil {
+	// 	errorpages.InternalServerError(request, err.Error())
+	// 	return
+	// }
+	// commons.Ok(request, true, 0, 0)
 }
 
-func UpdateComponent(request customrequest.CustomRequest) {
+func Update(request customrequest.CustomRequest) {
 	DB = request.DB
 
-	var componentJSON Component
-	err := request.ParserBodyRequest(&componentJSON)
+	var elemJSON EditorElement
+	err := request.ParserBodyRequest(&elemJSON)
 	if err != nil {
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
-	exist, err := componentJSON.Exist()
+	exist, err := elemJSON.Exist()
 	if !exist && err == nil {
 		errorpages.BadRequest(request, "Component NOT exist")
 		return
@@ -100,9 +137,8 @@ func UpdateComponent(request customrequest.CustomRequest) {
 		errorpages.InternalServerError(request, err.Error())
 		return
 	}
-	componentJSON.IDInsertUser = request.Claims.IDUser
-	componentJSON.IDEditUser = request.Claims.IDUser
-	err = componentJSON.Update()
+	elemJSON.IDEditUser = request.Claims.IDUser
+	err = elemJSON.Update()
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -110,8 +146,8 @@ func UpdateComponent(request customrequest.CustomRequest) {
 	commons.Ok(request, true, 0, 0)
 }
 
-//DeleteComponent delete a component item from database
-func DeleteComponent(request customrequest.CustomRequest) {
+//Delete delete a component item from database
+func Delete(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	id, err := strconv.Atoi(request.Parameters["ID"])
@@ -121,7 +157,7 @@ func DeleteComponent(request customrequest.CustomRequest) {
 		return
 	}
 
-	err = Delete(int64(id))
+	err = DeleteRecord(int64(id))
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return

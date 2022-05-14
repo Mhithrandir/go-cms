@@ -1,0 +1,45 @@
+{{ define "menu" }}
+    <ul id="{{ . }}" class="menu"></ul>
+    <script>
+        var menu = [];
+        $(document).ready(() => {
+            let menuname = "{{ . }}";
+            Get("../api/menu/getmenu?menuName=" + menuname, 0).done(function(data) {
+                menu = data.Data;
+                PrintMenu(menu, $("#" + menuname));
+            });
+        });
+        function PrintMenu(menu, parent) {
+            for(i = 1; i < parent[0].children.length; i++) {
+                parent[0].children[i].remove();
+                i=1;
+            }
+            menu.forEach((r) => {
+                let li = $("<li></li>");
+                if(r.Route.Package != "fake") {
+                    if(r.Route.Path == ".." + window.location.pathname) {
+                        $(parent).show();
+                        $(li).append($("<a class=\"menu-header active\">" + r.Name + "</a>"))
+                    }
+                    else {
+                        $(li).append($("<a class=\"menu-header\" href=\"" + r.Route.Path + "\">" + r.Name + "</a>"))
+                    }
+                }
+                else {
+                    $(li).append($("<span class=\"menu-header\" id=\"" + r.ID + "\" onclick=\"MenuItemToglle(" + r.ID + ")\"><span class=\"icon-menu\">:.</span>" + r.Name + "</span>"));
+                    let sottomenu = $("<ul style=\"display: none;\"></ul>");
+                    PrintMenu(r.Childrens, sottomenu);
+                    $(li).append(sottomenu);
+                }
+                $(parent).append($(li));
+            });
+        }
+        function MenuItemToglle(id) {
+            $($("#" + id).children()[0]).toggleClass("icon-menu-expanded");
+            $($("#" + id).children()[0]).toggleClass("icon-menu");
+            $("#" + id).toggleClass("menu-header");
+            $("#" + id).toggleClass("menu-header-expanded");
+            $($($("#" + id).parent()).children()[1]).toggle(800);
+        }
+    </script>
+{{end}}

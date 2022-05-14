@@ -1,0 +1,21 @@
+<form [formGroup]="frmGroup" class="grid-1" method="post" (ngSubmit)="onSubmit()">
+    <app-form-control
+        [label]="'* Name'"
+        [controlName]="'name'"
+        [frmGroup]="frmGroup"></app-form-control>
+    <app-form-control
+        [label]="'* Route'"
+        [controlName]="'route'"
+        [controlType]="2"
+        [dataList]="routes"
+        [descField]="'Path'"
+        [frmGroup]="frmGroup"></app-form-control>
+    <app-form-control
+        [label]="'* Contet'"
+        [controlName]="'content'"
+        [controlType]="3"
+        [frmGroup]="frmGroup"></app-form-control>
+    <label class="unselectable mt-1">* Mandatory fields</label>
+    <label class="unselectable mt-1 error-message" *ngIf="error != '' && error != null">{{ error }}</label>
+    <button type="submit" class="btn unselectable override-dialog" [disabled]="frmGroup.invalid">Save</button>
+</form>

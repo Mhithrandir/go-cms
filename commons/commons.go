@@ -1,14 +1,16 @@
 package commons
 
 import (
-	"cms/config"
 	"cms/customrequest"
 	"cms/logs"
 	"crypto/md5"
 	"encoding/hex"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"net/mail"
 	"net/smtp"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -79,7 +81,7 @@ func CryptPassword(pass string) string {
 }
 
 //CreateJwsToken create a jws token
-func CreateJwsToken(username string, iduser, idusertype int64) (string, error) {
+func CreateJwsToken(username string, iduser, idusertype int64, request customrequest.CustomRequest) (string, error) {
 
 	//Create the claims
 	claims := customrequest.Claims{
@@ -93,15 +95,8 @@ func CreateJwsToken(username string, iduser, idusertype int64) (string, error) {
 	//Creo il token JWT con i claims
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &claims)
 
-	var _config config.Config
-	err := config.LoadConfiguration(&_config)
-
-	if err != nil {
-		log.Fatal("Error loading config: ", err)
-	}
-
 	//Cripto il token usando la chiave segreta
-	tokenString, err := token.SignedString([]byte(_config.SecretKey))
+	tokenString, err := token.SignedString([]byte(request.Config.SecretKey))
 	if err != nil {
 		logs.Save("commons", "CreateJwsToken", "Error in token generation", logs.Error, err.Error())
 		return "", err
@@ -139,16 +134,10 @@ func VerifyPassword(pass, passOld string) string {
 }
 
 //SendMail send a mail
-func SendMail(from mail.Address, to, subject, message string) (bool, error) {
-	var _config config.Config
-	err := config.LoadConfiguration(&_config)
+func SendMail(from mail.Address, to, subject, message string, request customrequest.CustomRequest) (bool, error) {
 
-	if err != nil {
-		log.Fatal("Error loading config: ", err)
-	}
-
-	_ = smtp.PlainAuth("", _config.AccountMail.Username, _config.AccountMail.Password, _config.AccountMail.SMTPServer)
-	c, err := smtp.Dial(_config.AccountMail.SMTPServer + ":" + _config.AccountMail.Port)
+	_ = smtp.PlainAuth("", request.Config.AccountMail.Username, request.Config.AccountMail.Password, request.Config.AccountMail.SMTPServer)
+	c, err := smtp.Dial(request.Config.AccountMail.SMTPServer + ":" + request.Config.AccountMail.Port)
 	if err != nil {
 		logs.Save("commons", "SendMail", "Error in Dial", logs.Error, err.Error())
 		log.Println(err)
@@ -187,4 +176,65 @@ func SendMail(from mail.Address, to, subject, message string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+//UploadFile upload a file in a specifi folder
+func UploadFile(request customrequest.CustomRequest, basePath string, extensions []string) (int, string) {
+
+	err := request.Request.ParseMultipartForm(request.Config.MaxUploadSize)
+	if err != nil {
+		logs.Save("commons", "UploadFile", "Error parsing multipart form data", logs.Error, err)
+		return http.StatusBadRequest, "Error parsing multipart form data"
+	}
+
+	file, handler, err := request.Request.FormFile("myFile")
+	if err != nil {
+		logs.Save("commons", "UploadFile", "Error retrieving the File", logs.Error, err)
+		return http.StatusInternalServerError, "Error retrieving the File"
+	}
+	defer file.Close()
+
+	fileSize := handler.Size
+	if fileSize > request.Config.MaxUploadSize {
+		logs.Save("commons", "UploadFile", "File is too big", logs.Error, err)
+		return http.StatusBadRequest, "File is too big"
+	}
+
+	tempFile, err := ioutil.TempFile("./www/img/temp-ftp", "tempfile")
+	if err != nil {
+		logs.Save("commons", "UploadFile", "Error uploading the file", logs.Error, err)
+		return http.StatusInternalServerError, "Error uploading the file"
+	}
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		logs.Save("commons", "UploadFile", "Error streaming the file to upload", logs.Error, err)
+		return http.StatusInternalServerError, "Error streaming the file to upload"
+	}
+
+	if extensions[0] != "*" {
+		detectedFileType := http.DetectContentType(fileBytes)
+		var found bool = false
+		for _, e := range extensions {
+			if e == detectedFileType {
+				found = true
+				break
+			}
+		}
+		if !found {
+			logs.Save("commons", "UploadFile", "The file format is not valid", logs.Error, err)
+			return http.StatusBadRequest, "The file format is not valid"
+		}
+	}
+
+	//Write the temporary file
+	tempFile.Write(fileBytes)
+	tempFile.Close()
+	//move the temporary file in the right folder
+	err = os.Rename("./"+tempFile.Name(), basePath+handler.Filename)
+	if err != nil {
+		logs.Save("commons", "UploadFile", "Error renaming the file", logs.Error, err)
+		return http.StatusInternalServerError, "Error renaming the file"
+	}
+
+	return http.StatusOK, basePath + handler.Filename
 }

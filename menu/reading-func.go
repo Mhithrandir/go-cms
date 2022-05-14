@@ -5,7 +5,6 @@ import (
 	"cms/logs"
 	"cms/route"
 	"database/sql"
-	"log"
 )
 
 //LoadMenu load a specific menu from the database, this is a recursive func that load all menu and all childrens of each menu item
@@ -30,6 +29,30 @@ func LoadMenu(menuname string, idusertype, parent int64) ([]Menu, error) {
 			logs.Save("menu", "LoadMenu", "Error selecting children", logs.Error, err.Error())
 			return nil, err
 		}
+	}
+	return results, nil
+}
+
+//LoadMenuNames load all menu names
+func LoadMenuNames() ([]string, error) {
+	sql, err := DB.GetQuery("GetMenuNames")
+	if err != nil {
+		return nil, err
+	}
+	reader, err := DB.Reader(sql)
+	if err != nil {
+		return nil, err
+	}
+	defer reader.Close()
+	var results []string
+	for reader.Next() {
+		var record string
+		err := reader.Scan(&record)
+		if err != nil {
+			logs.Save("menu", "LoadMenuNames", "Error scanning the record", logs.Error, err.Error())
+			return nil, err
+		}
+		results = append(results, record)
 	}
 	return results, nil
 }
@@ -144,13 +167,12 @@ func CountMenu() (int64, error) {
 
 //Exist check if a menupermission records alreasdy exist
 func (m Menu) Exist() (bool, error) {
-	asd, err := DB.ScanTable("SELECT * FROM menus WHERE menuname = ? AND name = ?", m.MenuName, m.Name)
-	log.Println(asd)
+	result, err := DB.ScanTable("SELECT * FROM menus WHERE menuname = ? AND name = ?", m.MenuName, m.Name)
 	if err != nil {
-		logs.Save("menu", "LoadMenu", "Error selecting", logs.Error, err.Error())
+		logs.Save("menu", "Exist", "Error selecting", logs.Error, err.Error())
 		return false, err
 	}
-	return (len(asd) > 0), nil
+	return (len(result) > 0), nil
 }
 
 func GetMenuFromID(id int64) (Menu, error) {

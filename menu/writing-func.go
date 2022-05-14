@@ -53,8 +53,8 @@ func (m Menu) Add() error {
 // 	return nil
 // }
 
-//Delete a route
-func Delete(id int64) error {
+//DeleteRecord a record
+func DeleteRecord(id int64) error {
 	// m, err := GetMenuFromID(id)
 	// if err != nil {
 	// 	return err

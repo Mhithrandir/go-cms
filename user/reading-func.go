@@ -4,6 +4,7 @@ import (
 	"cms/commons"
 	"cms/logs"
 	"database/sql"
+	"errors"
 	"time"
 )
 
@@ -76,22 +77,25 @@ func GetUsers(start, end int) ([]User, error) {
 }
 
 //GetUserByID return a user from id
-func GetUserByID(id int64) ([]User, error) {
+func GetUserByID(id int64) (User, error) {
 	sql, err := DB.GetQuery("UserPrinc")
 	if err != nil {
-		return nil, err
+		return User{}, err
 	}
 	reader, err := DB.Reader(sql+" WHERE Users.ID = ?", id)
 	if err != nil {
-		return nil, err
+		return User{}, err
 	}
 	defer reader.Close()
 	results, err := read(reader)
 	if err != nil {
-		return nil, err
+		return User{}, err
+	}
+	if len(results) == 0 {
+		return User{}, errors.New("No user found for the ID: " + string(id))
 	}
 
-	return results, nil
+	return results[0], nil
 }
 
 //CheckUsername verifyu if username already exist

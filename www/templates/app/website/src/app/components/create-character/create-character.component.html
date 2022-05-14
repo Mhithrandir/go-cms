@@ -1,0 +1,46 @@
+<ng-container *ngIf="stepCreation > -1">
+    <div>
+        <h4>Punti da spendere: {{ this.scheda["Points"].Value }}</h4>
+    </div>
+    <ng-container [ngSwitch]="stepCreation">
+        <div class="scrollable-div" *ngSwitchCase="0">
+            <h2>Fase 1: Razza</h2>
+            <div *ngFor="let r of races">
+                <h2>{{ r.Name }}</h2>
+                <img src="{{ r.Icon }}"/>
+                <div [innerHTML]="r.Description"></div>
+                <button class="btn" (click)="Select('Race', r)">Seleziona</button>
+            </div>
+        </div>
+        <div class="scrollable-div" *ngSwitchCase="1">
+            <h2>Fase 2: Classe</h2>
+            <div *ngFor="let r of classes">
+                <h2>{{ r.Name }}</h2>
+                <img src="{{ r.Icon }}">
+                <div [innerHTML]="r.Description"></div>
+                <button class="btn" (click)="Select('Class', r)">Seleziona</button>
+            </div>
+        </div>
+        <div *ngSwitchCase="2">
+            <h2>Fase 3: Caratteristiche (Punteggio massimo: {{ scheda['Abilities'][0].Element.Max }}, minimo: {{ scheda['Abilities'][0].Element.Min }})</h2>
+            <app-edit-skills [skills]="scheda['Abilities']" (valueChanged)="AbilitiesChanged($event)" (next)="Next()"></app-edit-skills>
+        </div>
+        <div class="scrollable-div" *ngSwitchCase="3">
+            <h2>Fase 4: Abilità (Punteggio massimo: {{ scheda['Skills'][0].Element.Max }}, minimo: {{ scheda['Skills'][0].Element.Min }}, bisogna aver speso almeno un punto nella caratteristica collegata)</h2>
+            <app-edit-skills [skills]="scheda['Skills']" (valueChanged)="SkillsChanged($event)" (next)="Next()"></app-edit-skills>
+        </div>
+        <div class="scrollable-div" *ngSwitchCase="4">
+            <h2>Fase 5: Bundles (bisogna aver speso almeno un punto nell'abilità collegata)</h2>
+            <app-edit-bundles [bundles]="scheda['Bundles']" [scheda]="scheda" (valueChanged)="BundlesChanged($event)" (next)="Next()"></app-edit-bundles>
+        </div>
+        <div *ngSwitchCase="5">
+            <h2>Fase 6: Ritocchi finali</h2>
+            <app-edit-character-info [scheda]="scheda" (saved)="Save($event)"></app-edit-character-info>
+        </div>
+    </ng-container>
+    <div style="text-align: right;margin-top: 5px;">
+        <button type="button" class="btn mt-1" (click)="Back()" *ngIf="stepCreation > 0">Indietro</button>
+        <button class="btn mt-1 ml-1" (click)="CancelCreation()">Annulla</button>
+    </div>
+    <h4 class="unselectable mt-1 error-message" *ngIf="error != ''">{{ error }}</h4>
+</ng-container>

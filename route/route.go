@@ -2,42 +2,42 @@ package route
 
 import (
 	"cms/commons"
-	"cms/config"
 	"cms/customrequest"
 	"cms/errorpages"
 	"cms/logs"
 	"cms/usertype"
-	"log"
+	"math"
 	"strconv"
 )
 
 //ParseRoute handle the func specified in the apirequest
 func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
-	case "addroute":
-		AddRoute(request)
+	case "add":
+		Add(request)
 	case "getroutes":
 		GetRoutes(request)
 	case "getroutesfiltered":
 		GetRoutesFiltered(request)
-	case "deleteroute":
-		DeleteRoute(request)
-	case "updateroute":
-		UpdateRoute(request)
-	case "checkroute":
-		CheckRoute(request)
+	case "delete":
+		Delete(request)
+	case "update":
+		Update(request)
+	case "check":
+		Check(request)
 	default:
 		errorpages.NotFound(request)
 	}
 }
 
-//AddRoute add a new route
-func AddRoute(request customrequest.CustomRequest) {
+//Add add a new route
+func Add(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	var routeJSON Route
 	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
@@ -56,7 +56,7 @@ func AddRoute(request customrequest.CustomRequest) {
 		routeJSON.Permissions[i].IDInsertUser = request.Claims.IDUser
 		routeJSON.Permissions[i].IDEditUser = request.Claims.IDUser
 		usertype.DB = DB
-		u, err := usertype.GetUserTypeFromDescription(routeJSON.Permissions[i].Description)
+		u, err := usertype.GetUserTypeFromDescription(routeJSON.Permissions[i].UserType.Description)
 		if err != nil {
 			errorpages.InternalServerError(request, err.Error())
 			return
@@ -98,8 +98,6 @@ func GetRoutesFiltered(request customrequest.CustomRequest) {
 	commons.Ok(request, result, 0, 0)
 }
 
-// getroutesfiltered
-
 //GetRoutes returns all routes configured in the database
 func GetRoutes(request customrequest.CustomRequest) {
 	DB = request.DB
@@ -110,13 +108,8 @@ func GetRoutes(request customrequest.CustomRequest) {
 		errorpages.BadRequest(request, err.Error())
 		return
 	}
-	var _config config.Config
-	err = config.LoadConfiguration(&_config)
-	if err != nil {
-		log.Fatal("Error loading config: ", err)
-	}
 
-	result, err := LoadRoutes(page*_config.Pagination, _config.Pagination)
+	result, err := LoadRoutes(page*request.Config.Pagination, request.Config.Pagination)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -127,12 +120,14 @@ func GetRoutes(request customrequest.CustomRequest) {
 		errorpages.InternalServerError(request, err.Error())
 		return
 	}
-
-	commons.Ok(request, result, page, int(count)/_config.Pagination)
+	countFloat := float64(count)
+	paginationFloat := float64(request.Config.Pagination)
+	pageNumber := int(math.Ceil(countFloat / paginationFloat))
+	commons.Ok(request, result, page, int(pageNumber))
 }
 
-//DeleteRoute delete a route from database
-func DeleteRoute(request customrequest.CustomRequest) {
+//Delete delete a route from database
+func Delete(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	id, err := strconv.Atoi(request.Parameters["ID"])
@@ -142,7 +137,7 @@ func DeleteRoute(request customrequest.CustomRequest) {
 		return
 	}
 
-	err = Delete(int64(id))
+	err = DeleteRecord(int64(id))
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -150,13 +145,14 @@ func DeleteRoute(request customrequest.CustomRequest) {
 	commons.Ok(request, true, 0, 0)
 }
 
-//UpdateRoute a route in the database
-func UpdateRoute(request customrequest.CustomRequest) {
+//Update a route in the database
+func Update(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	var routeJSON Route
 	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
@@ -188,13 +184,14 @@ func UpdateRoute(request customrequest.CustomRequest) {
 	commons.Ok(request, true, 0, 0)
 }
 
-//CheckRoute check if user has permission to open this route
-func CheckRoute(request customrequest.CustomRequest) {
+//Check check if user has permission to open this route
+func Check(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	var routeJSON Route
 	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 

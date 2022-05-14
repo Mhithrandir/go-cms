@@ -1,0 +1,18 @@
+<div class="tendina">
+    <div class="body" style="border: 1px solid #ddd;">
+        <header class="unselectable">{{ title }}</header>
+        <div class="content">
+            <div class="layout layout-err unselectable">
+                <svg *ngIf="dialogType == 2 || dialogType == 4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" stroke-linejoin="round"><g transform="matrix(0.995025,0,0,1.03627,-15.9204,-6.73575)"><ellipse cx="418" cy="296" rx="201" ry="193" style="fill:#ff000045;stroke:red;stroke-width:20px;"/></g><g transform="matrix(1,0,0,1,58,58)"><text x="281px" y="365px" style="font-weight:700;font-size:375px;fill:red;">!</text></g></svg>
+                <span *ngIf="dialogType == 2" class="text ml-1">Are you sure you want to delete it?</span>
+                <div *ngIf="dialogType != 2" class="layout">
+                    <ng-content></ng-content>
+                </div>
+            </div>
+        </div>
+        <footer style="text-align: right;">
+            <button type="button" class="btn" (click)="DeleteClick()" *ngIf="dialogType == 2">Delete</button>
+            <button type="button" class="btn-error ml-1" (click)="CancelClick()">Cancel</button>
+        </footer>
+    </div>
+</div>

@@ -1,0 +1,74 @@
+<div id="dati">
+    <table *ngIf="table != null">
+        <thead>
+            <tr>
+                <th *ngIf="table.ChildrenRows" scope="col">#</th>
+                <th [ngClass]="{ 'col': true, 'col-filter': c.FilterOpen }" *ngFor="let c of table.Columns" scope="col">
+                    {{ c.Description }}
+                    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 404.308 404.309" (click)="c.FilterOpen = !c.FilterOpen">
+                        <path d="M0 101.08h404.308L202.151 303.229 0 101.08z"/>
+                    </svg>
+                    <div class="filter-emnu" (mouseleave)="c.FilterOpen = !c.FilterOpen">
+                        <ng-container [ngSwitch]="c.Type">
+                            <input *ngSwitchCase="'string'" type="text" class="form-control">
+                            <div *ngSwitchCase="'bool'">
+                                <input type="radio" class="form-control">
+                                <input type="radio" class="form-control">
+                            </div>
+                        </ng-container>
+                        <button class="btn ml-1">Filter</button>
+                    </div>
+                </th>
+                <th *ngIf="table.EditButton || table.DeleteButton" scope="col">#</th>
+            </tr>
+        </thead>
+        <tbody>
+            <ng-container *ngFor="let r of table.Rows">
+                <tr (click)="SelectedRow(r)" [ngClass]="{ 'selected': r.Selected }">
+                    <td *ngIf="table.ChildrenRows">
+                        <span (click)="Expanded(r)" *ngIf="r.Childrens != null && r.Childrens.length > 0" [ngClass]="{ 'expander': !r.IsExpanded, 'expander-expanded': r.IsExpanded }">
+                            <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 451.846 451.847">
+                                <path d="M345.441 248.292 151.154 442.573c-12.359 12.365-32.397 12.365-44.75 0-12.354-12.354-12.354-32.391 0-44.744L278.318 225.92 106.409 54.017c-12.354-12.359-12.354-32.394 0-44.748 12.354-12.359 32.391-12.359 44.75 0l194.287 194.284c6.177 6.18 9.262 14.271 9.262 22.366 0 8.099-3.091 16.196-9.267 22.373z"/>
+                            </svg>
+                        </span>
+                    </td>
+                    <td *ngFor="let c of table.Columns">
+                        <ng-container [ngSwitch]="c.Type">
+                            <span *ngSwitchCase="'date'">{{ GetPropretyValue(r, c.Name) | date : 'dd-MM-yyyy - HH:mm:ss' }}</span>
+                            <img *ngSwitchCase="'image'" width="150" src="{{ GetPropretyValue(r, c.Name) }}"/>
+                            <span *ngSwitchCase="'html'" [innerHTML]="GetPropretyValue(r, c.Name)"></span>
+                            <span *ngSwitchCase="'bool'">
+                                <span *ngIf="GetPropretyValue(r, c.Name)" class="bool">
+                                    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 405.272 405.272">
+                                        <path d="M393.401 124.425 179.603 338.208c-15.832 15.835-41.514 15.835-57.361 0L11.878 227.836c-15.838-15.835-15.838-41.52 0-57.358 15.841-15.841 41.521-15.841 57.355-.006l81.698 81.699L336.037 67.064c15.841-15.841 41.523-15.829 57.358 0 15.835 15.838 15.835 41.514.006 57.361z"/>
+                                    </svg>
+                                </span>
+                            </span>
+                            <span *ngSwitchDefault>{{ GetPropretyValue(r, c.Name) }}</span>
+                        </ng-container>
+                    </td>
+                    <td *ngIf="table.EditButton || table.DeleteButton" class="buttons">
+                        <button *ngIf="table.EditButton" class="btn-warning" (click)="Edit(r)">Edit</button>
+                        <button *ngIf="table.DeleteButton" class="btn-error ml-1" (click)="Delete(r)">Delete</button>
+                    </td>
+                </tr>
+                <ng-container *ngIf="table.ChildrenRows && r.IsExpanded">
+                    <tr class="childern">
+                        <td *ngIf="table.EditButton || table.DeleteButton" [attr.colspan]="table.Columns.length + 2">
+                            <app-table [table]="tableChildren" (edited)="Edit($event)" (deleted)="Delete($event)">
+                            </app-table>
+                        </td>
+                        <td *ngIf="!table.EditButton && !table.DeleteButton" [attr.colspan]="table.Columns.length + 1">
+                            <app-table [table]="tableChildren" (edited)="Edit($event)" (deleted)="Delete($event)">
+                            </app-table>
+                        </td>
+                    </tr>
+                </ng-container>
+            </ng-container>
+        </tbody>
+    </table>
+</div>
+<div id="pagination" class="mt-1" *ngIf="table != null">
+    <button class="btn btn-primary" (click)="Add()" *ngIf="table.AddButton">{{ table.AddButtonText }}</button>
+    <button class="btn ms-1" *ngFor="let p of table.Pagination" [disabled]="p.Active" (click)="NextPage(p.Text)">{{ p.Text }}</button>
+</div>

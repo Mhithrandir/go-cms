@@ -2,12 +2,9 @@ package user
 
 import (
 	"cms/commons"
-	"cms/config"
 	"cms/customrequest"
 	"cms/errorpages"
 	"cms/logs"
-	"cms/usertype"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -26,10 +23,12 @@ func ParseRoute(request customrequest.CustomRequest) {
 		VerifyUser(request)
 	case "loadusers":
 		LoadUsers(request)
-	case "updateuser":
-		UpdateUser(request)
+	case "update":
+		Update(request)
 	case "exist":
 		CheckUserExist(request)
+	case "reset":
+		ResetPassword(request)
 	default:
 		errorpages.NotFound(request)
 	}
@@ -56,21 +55,14 @@ func Login(request customrequest.CustomRequest) {
 		return
 	}
 
-	tokenString, err := commons.CreateJwsToken(user[0].Username, user[0].ID, user[0].IDUserType)
+	tokenString, err := commons.CreateJwsToken(user[0].Username, user[0].ID, user[0].IDUserType, request)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
 	}
 
-	var _config config.Config
-	err = config.LoadConfiguration(&_config)
-
-	if err != nil {
-		log.Fatal("Error loading config: ", err)
-	}
-
 	expiration := time.Now()
-	expiration = expiration.Add(time.Duration(_config.TokenDuration * 60000000000))
+	expiration = expiration.Add(time.Duration(request.Config.TokenDuration * 60000000000))
 
 	if !user[0].PasswordExpired() {
 		user[0].Password = ""
@@ -120,35 +112,18 @@ func Register(request customrequest.CustomRequest) {
 		return
 	}
 
-	var _config config.Config
-	err = config.LoadConfiguration(&_config)
-
-	if err != nil {
-		// log.Fatal("Error loading config: ", err)
-		errorpages.InternalServerError(request, err.Error())
-		return
-	}
-
-	usertype.DB = DB
-	usertype, err := usertype.GetUserTypeFromDescription("UserNotVerified")
-	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
-		return
-	}
-	log.Println(usertype)
-
 	// userJSON.IDUserType = usertype.ID
 	userJSON.CodeResetPassword = uuid.Must(uuid.NewRandom()).String()
-	userJSON.PasswordDuration = _config.PasswordDuration
+	userJSON.PasswordDuration = request.Config.PasswordDuration
 
-	body := strings.Replace(_config.RegistrationBody, "$username", userJSON.Username, -1)
-	body = strings.Replace(body, "$registrazione", _config.LinkVerifyRegistration+userJSON.CodeResetPassword, -1)
+	body := strings.Replace(request.Config.RegistrationBody, "$username", userJSON.Username, -1)
+	body = strings.Replace(body, "$registrazione", request.Config.LinkVerifyRegistration+userJSON.CodeResetPassword, -1)
 	headers := make(map[string]string)
-	headers["From"] = _config.NoreplyMailAddress
+	headers["From"] = request.Config.NoreplyMailAddress
 	headers["To"] = userJSON.Username
-	headers["Subject"] = _config.SubjectRegistration
+	headers["Subject"] = request.Config.SubjectRegistration
 
-	headers["MIME-version"] = _config.AccountMail.Mime
+	headers["MIME-version"] = request.Config.AccountMail.Mime
 	message := ""
 	for k, v := range headers {
 		message += k + ": " + v + "\r\n"
@@ -198,6 +173,62 @@ func VerifyUser(request customrequest.CustomRequest) {
 	commons.Ok(request, true, 0, 0)
 }
 
+//Reset the password in the database for a specific user
+func ResetPassword(request customrequest.CustomRequest) {
+	DB = request.DB
+
+	var userJSON User
+	err := request.ParserBodyRequest(&userJSON)
+	if err != nil {
+		errorpages.BadRequest(request, err.Error())
+		return
+	}
+
+	exist, err := userJSON.Exist()
+	if !exist && err == nil {
+		errorpages.BadRequest(request, "User not exist")
+		return
+	} else if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+
+	userJSON.CodeResetPassword = uuid.Must(uuid.NewRandom()).String()
+	userJSON.PasswordDuration = request.Config.PasswordDuration
+
+	body := strings.Replace(request.Config.RegistrationBody, "$username", userJSON.Username, -1)
+	body = strings.Replace(body, "$registrazione", request.Config.LinkVerifyRegistration+userJSON.CodeResetPassword, -1)
+	headers := make(map[string]string)
+	headers["From"] = request.Config.NoreplyMailAddress
+	headers["To"] = userJSON.Username
+	headers["Subject"] = request.Config.SubjectRegistration
+
+	headers["MIME-version"] = request.Config.AccountMail.Mime
+	message := ""
+	for k, v := range headers {
+		message += k + ": " + v + "\r\n"
+	}
+	message += "\r\n" + body
+
+	// sent, err := commons.SendMail(
+	// 	mail.Address{"NoReply", _config.NoreplyMailAddress},
+	// 	userJSON.Username,
+	// 	_config.SubjectRegistration,
+	// 	message)
+	// if err != nil || !sent {
+	// 	errorpages.InternalServerError(request, err.Error())
+	// 	return
+	// }
+
+	//if everything is ok update the user in the database
+	err = userJSON.Update()
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+	commons.Ok(request, true, 0, 0)
+}
+
 //CheckUserExist verify the user exist
 func CheckUserExist(request customrequest.CustomRequest) {
 	DB = request.DB
@@ -234,12 +265,7 @@ func LoadUsers(request customrequest.CustomRequest) {
 	} else {
 		page = 0
 	}
-	var _config config.Config
-	err = config.LoadConfiguration(&_config)
-	if err != nil {
-		log.Fatal("Error loading config: ", err)
-	}
-	result, err := GetUsers(page, _config.Pagination)
+	result, err := GetUsers(page, request.Config.Pagination)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -251,11 +277,11 @@ func LoadUsers(request customrequest.CustomRequest) {
 		return
 	}
 
-	commons.Ok(request, result, page, int(count)/_config.Pagination)
+	commons.Ok(request, result, page, int(count)/request.Config.Pagination)
 }
 
-//UpdateUser update user information
-func UpdateUser(request customrequest.CustomRequest) {
+//Update update user information
+func Update(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	var userJSON User

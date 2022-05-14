@@ -1,11 +1,5 @@
-<ul id="mainMenu">
-    {{ range $m := .MainMenu }}
-    <li>
-        {{ template "menu-item" $m }}
-    </li>
-    {{end}}
-</ul>
-<div>
+{{ template "menu" .MenuName }}
+<div class="render">
     <h2>Register in the website</h2>
     <form method="post">
         <label for="username">Username</label>
@@ -14,7 +8,8 @@
         <input class="form-control"id="password" name="password" type="password">
         <label for="confirmpassword">Confirm Password</label>
         <input class="form-control"id="confirmpassword" name="confirmpassword" type="password">
-        <button class="btn" type="button" onclick="Register()">Register</button>
+        <button class="btn mt-1" type="button" onclick="Register()">Register</button>
+        <button class="btn mt-1" type="button" onclick="window.location = '../resetPassword'">I Forgot my password</button>
         <label id="success"></label>
     </form>
 </div>

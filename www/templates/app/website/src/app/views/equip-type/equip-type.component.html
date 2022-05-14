@@ -1,0 +1,26 @@
+<table id="dati" >
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">#</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr *ngFor="let r of records">
+            <td>{{ r.Name }}</td>
+            <td>
+                <button class="btn-error ml-1" (click)="OpenDeleteDialog(r.ID, 'user', 'delete');">Delete</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<div id="pagination" class="mt-1">
+    <button class="btn btn-primary" (click)="AddEquipType()">Add Equip type</button>
+</div>
+<app-dialog
+    [title]="'Edit Equip Type'"
+    [dialogType]="dialogType"
+    *ngIf="dialogType != 99 && dialogType != 2"
+    (cancelClick)="CancelDialogClick()">
+    <app-edit-equip-type [selectedEquipType]="selectedRecord" (saved)="SavedDialogClick($event, dialogType)"></app-edit-equip-type>
+</app-dialog>

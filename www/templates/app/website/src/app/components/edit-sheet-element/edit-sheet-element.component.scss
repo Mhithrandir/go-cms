@@ -1,0 +1,8 @@
+.abilitated {
+    display: grid;
+    grid-template-columns: 1fr 30px 1fr;
+    .label {
+        grid-column-start: 1;
+        grid-column-end: 4;
+    }
+}

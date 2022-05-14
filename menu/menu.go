@@ -2,11 +2,9 @@ package menu
 
 import (
 	"cms/commons"
-	"cms/config"
 	"cms/customrequest"
 	"cms/errorpages"
 	"cms/logs"
-	"log"
 	"strconv"
 )
 
@@ -17,12 +15,14 @@ func ParseRoute(request customrequest.CustomRequest) {
 		GetMenu(request)
 	case "getplainmenu":
 		GetPlainMenu(request)
-	case "deletemenu":
-		DeleteMenu(request)
-	case "addmenu":
-		AddMenu(request)
-	case "updatemenu":
-		UpdateMenu(request)
+	case "getmenunames":
+		GetMenuNames(request)
+	case "delete":
+		Delete(request)
+	case "add":
+		Add(request)
+	case "update":
+		Update(request)
 	default:
 		errorpages.NotFound(request)
 	}
@@ -55,12 +55,7 @@ func GetPlainMenu(request customrequest.CustomRequest) {
 	} else {
 		page = 0
 	}
-	var _config config.Config
-	err = config.LoadConfiguration(&_config)
-	if err != nil {
-		log.Fatal("Error loading config: ", err)
-	}
-	result, err := LoadPlainMenu(page, _config.Pagination)
+	result, err := LoadPlainMenu(page, 999)
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return
@@ -72,16 +67,28 @@ func GetPlainMenu(request customrequest.CustomRequest) {
 		return
 	}
 
-	commons.Ok(request, result, page, int(count)/_config.Pagination)
+	commons.Ok(request, result, page, int(count)/request.Config.Pagination)
 }
 
-//AddMenu add a menu item to the database
-func AddMenu(request customrequest.CustomRequest) {
+//GetMenuNames Load all menu names
+func GetMenuNames(request customrequest.CustomRequest) {
+	DB = request.DB
+	result, err := LoadMenuNames()
+	if err != nil {
+		errorpages.InternalServerError(request, err.Error())
+		return
+	}
+	commons.Ok(request, result, -1, -1)
+}
+
+//Add add a menu item to the database
+func Add(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	var menuJSON Menu
 	err := request.ParserBodyRequest(&menuJSON)
 	if err != nil {
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
@@ -103,13 +110,14 @@ func AddMenu(request customrequest.CustomRequest) {
 	commons.Ok(request, true, 0, 0)
 }
 
-//UpdateMenu a menu item to the database
-func UpdateMenu(request customrequest.CustomRequest) {
+//Update a menu item to the database
+func Update(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	var menuJSON Menu
 	err := request.ParserBodyRequest(&menuJSON)
 	if err != nil {
+		errorpages.BadRequest(request, err.Error())
 		return
 	}
 
@@ -130,8 +138,8 @@ func UpdateMenu(request customrequest.CustomRequest) {
 	commons.Ok(request, true, 0, 0)
 }
 
-//DeleteMenu delete a menu item from database
-func DeleteMenu(request customrequest.CustomRequest) {
+//Delete delete a menu item from database
+func Delete(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	id, err := strconv.Atoi(request.Parameters["ID"])
@@ -141,7 +149,7 @@ func DeleteMenu(request customrequest.CustomRequest) {
 		return
 	}
 
-	err = Delete(int64(id))
+	err = DeleteRecord(int64(id))
 	if err != nil {
 		errorpages.InternalServerError(request, err.Error())
 		return

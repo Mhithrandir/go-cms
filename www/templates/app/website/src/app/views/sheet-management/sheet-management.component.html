@@ -1,0 +1,14 @@
+<app-table [table]="table" (edited)="Edit($event)" (deleted)="OpenDeleteDialog($event.ID, 'sheetelement', 'delete')" (added)="AddSheetElement()">
+</app-table>
+<app-dialog
+    [title]="editTitle"
+    [dialogType]="dialogType"
+    *ngIf="dialogType != 99 && dialogType != 2"
+    (cancelClick)="CancelDialogClick()">
+    <app-edit-sheet-element
+        [selectedSheetElement]="selectedRecord"
+        [elementTypes]="elementTypes"
+        [elements]="records"
+        [selectedElements]="selectedElements"
+        (saved)="SavedDialogClick($event, dialogType)"></app-edit-sheet-element>
+</app-dialog>
