@@ -55,7 +55,7 @@ func GetComponent(request customrequest.CustomRequest) {
 	DB = request.DB
 
 	if val, ok := request.Parameters["url"]; ok {
-		result, err := LoadComponent(val, request.Claims.IDUser)
+		result, err := LoadComponent(val, request.Claims.IDUserType)
 		if err != nil {
 			errorpages.InternalServerError(request, err.Error())
 			return

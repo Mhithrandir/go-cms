@@ -17,6 +17,7 @@ export class RoutesComponent extends BaseComponent implements OnInit {
 
   public userTypes!: Array<UserType>;
   public editTitle!: string;
+  public hasFilter!: boolean;
   
   constructor(service: CommonsService) { super(service); }
   
@@ -34,31 +35,7 @@ export class RoutesComponent extends BaseComponent implements OnInit {
   }
   Load() {
     this.service.Get("route", "getroutes?page=" + this.page).subscribe((result: Object) => {
-      let data = this.service.FormatResponse(result);
-      this.records = data.Data;
-      this.table = new DataTable();
-      this.table.Columns = new Array<DataColumn>();
-      this.table.Columns.push(new DataColumn("Package", "string"));
-      this.table.Columns.push(new DataColumn("Func", "string"));
-      this.table.Columns.push(new DataColumn("Type", "string"));
-      this.table.Columns.push(new DataColumn("Path", "string"));
-      this.table.Columns.push(new DataColumn("Methods", "string"));
-      for(let i = 0; i < this.userTypes.length; i++){
-        this.table.Columns.push(new DataColumn("Permissions[" + i.toString() + "].Enabled", "bool", this.userTypes[i].Description));
-      }
-      this.table.EditButton = this.table.DeleteButton = this.table.AddButton = true;
-      this.table.AddButtonText = 'Add Routes';
-      this.table.Rows = data.Data;
-      this.table.Pagination = new Array<PageButton>();
-      this.pagination = new Array<PageButton>();
-      for(let i = 0; i < data.PageCount; i++) {
-        let pageButton = new PageButton();
-        pageButton.Text = i.toString();
-        pageButton.Active = (i == data.Page);
-        this.pagination.push(pageButton);
-        this.table.Pagination.push(pageButton);
-      }
-      this.table.ShowFilter = true;
+      this.loadDataGrid(this.service.FormatResponse(result));
     }, (error) => {
       this.HandleError(error);
     });
@@ -91,6 +68,46 @@ export class RoutesComponent extends BaseComponent implements OnInit {
           location.reload();
         }
       });
+    }
+  }
+  Search($event: string) {
+    if ($event != "") {
+      this.service.Get("route", "getroutesfiltered?func=" + $event).subscribe((result: Object) => {
+        this.loadDataGrid(this.service.FormatResponse(result));
+        this.hasFilter = true;
+      }, (error) => {
+        this.HandleError(error);
+      });
+    }
+    else {
+      this.hasFilter = false;
+      this.Load();
+    }
+  }
+
+  loadDataGrid(data: any) {
+    this.records = data.Data;
+    this.table = new DataTable();
+    this.table.Columns = new Array<DataColumn>();
+    this.table.Columns.push(new DataColumn("Package", "string"));
+    this.table.Columns.push(new DataColumn("Func", "string"));
+    this.table.Columns.push(new DataColumn("Type", "string"));
+    this.table.Columns.push(new DataColumn("Path", "string"));
+    this.table.Columns.push(new DataColumn("Methods", "string"));
+    for(let i = 0; i < this.userTypes.length; i++){
+      this.table.Columns.push(new DataColumn("Permissions[" + i.toString() + "].Enabled", "bool", this.userTypes[i].Description));
+    }
+    this.table.EditButton = this.table.DeleteButton = this.table.AddButton = true;
+    this.table.AddButtonText = 'Add Routes';
+    this.table.Rows = data.Data;
+    this.table.Pagination = new Array<PageButton>();
+    this.pagination = new Array<PageButton>();
+    for(let i = 0; i < data.PageCount; i++) {
+      let pageButton = new PageButton();
+      pageButton.Text = i.toString();
+      pageButton.Active = (i == data.Page);
+      this.pagination.push(pageButton);
+      this.table.Pagination.push(pageButton);
     }
   }
 }

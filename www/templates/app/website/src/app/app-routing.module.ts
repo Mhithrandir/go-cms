@@ -18,6 +18,7 @@ import { ForumComponent } from './views/forum/forum.component';
 import { MapComponent } from './views/map/map.component';
 import { GuildsComponent } from './views/guilds/guilds.component';
 import { CharacterComponent } from './views/Frontend/character/character.component';
+import { LogoutComponent } from './components/logout/logout.component';
 
 const routes: Routes = [
   // { path: 'logout', component: LogOutComponent },
@@ -35,6 +36,7 @@ const routes: Routes = [
   { path: 'be/forums', component: ForumComponent, canActivate: [ RoleGuardService ] },
   { path: 'be/location', component: MapComponent, canActivate: [ RoleGuardService ] },
   { path: 'be/guilds', component: GuildsComponent, canActivate: [ RoleGuardService ] },
+  { path: 'be/logout', component: LogoutComponent, canActivate: [ RoleGuardService ] },
   { path: 'login', component: LoginComponent },
   // { path: 'logout', component: LoginComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },

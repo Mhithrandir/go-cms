@@ -5,7 +5,7 @@
                 <th *ngIf="table.ChildrenRows" scope="col">#</th>
                 <th [ngClass]="{ 'col': true, 'col-filter': c.FilterOpen }" *ngFor="let c of table.Columns" scope="col">
                     {{ c.Description }}
-                    <svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 404.308 404.309" (click)="c.FilterOpen = !c.FilterOpen">
+                    <!--<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" viewBox="0 0 404.308 404.309" (click)="c.FilterOpen = !c.FilterOpen">
                         <path d="M0 101.08h404.308L202.151 303.229 0 101.08z"/>
                     </svg>
                     <div class="filter-emnu" (mouseleave)="c.FilterOpen = !c.FilterOpen">
@@ -17,7 +17,7 @@
                             </div>
                         </ng-container>
                         <button class="btn ml-1">Filter</button>
-                    </div>
+                    </div>-->
                 </th>
                 <th *ngIf="table.EditButton || table.DeleteButton" scope="col">#</th>
             </tr>

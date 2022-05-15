@@ -56,6 +56,8 @@ import { ExpanderComponent } from './components/expander/expander.component';
 import { BlockEditorComponent } from './components/block-editor/block-editor.component';
 import { LocationStrategy, HashLocationStrategy } from '@angular/common';
 import { IconsComponent } from './components/icons/icons.component';
+import { FilterComponent } from './components/filter/filter.component';
+import { LogoutComponent } from './components/logout/logout.component';
 
 @NgModule({
   declarations: [
@@ -105,6 +107,8 @@ import { IconsComponent } from './components/icons/icons.component';
     ExpanderComponent,
     BlockEditorComponent,
     IconsComponent,
+    FilterComponent,
+    LogoutComponent,
   ],
   imports: [
     BrowserModule,

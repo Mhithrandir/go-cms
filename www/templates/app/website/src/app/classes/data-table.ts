@@ -9,7 +9,6 @@ export class DataTable {
     public AddButton: boolean = false;
     public AddButtonText!: string;
     public Pagination!: Array<PageButton>;
-    public ShowFilter: boolean = false;
     public Copy(): DataTable{
         let result = new DataTable();
         result.Columns = this.Columns;

@@ -1,0 +1,11 @@
+<form [formGroup]="frmGroup" class="grid-1" method="post" (ngSubmit)="onSubmit()">
+    <app-form-control
+        [label]="'* Search'"
+        [controlName]="'search'"
+        [frmGroup]="frmGroup"></app-form-control>
+    <label class="unselectable mt-1 error-message" *ngIf="error != '' && error != null">{{ error }}</label>
+    <div class="mt-1">
+        <button type="submit" class="btn unselectable" [disabled]="frmGroup.invalid">Search</button>
+        <button type="button" (click)="Reset()" class="btn-error ml-1 unselectable"[disabled]="!hasFilter">Reset</button>
+    </div>
+</form>
