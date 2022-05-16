@@ -1,22 +1,31 @@
 package main
 
 import (
+	"cms/character"
 	"cms/commons"
 	"cms/component"
 	"cms/config"
 	"cms/customrequest"
 	"cms/database"
 	"cms/dbapi"
+	"cms/equip"
 	"cms/errorpages"
+	"cms/forum"
+	"cms/guild"
+	"cms/location"
 	"cms/logs"
 	"cms/menu"
 	"cms/page"
 	"cms/route"
+	"cms/sheetelement"
 	"cms/user"
 	"cms/usertype"
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -38,6 +47,8 @@ func main() {
 		return
 	}
 	// defer db.Conn.Close()
+
+	// Automatic(db)
 
 	//serving style css
 	style := http.FileServer(http.Dir("./www/styles"))
@@ -90,6 +101,18 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		dbapi.ParseRoute(request)
 	case "component":
 		component.ParseRoute(request)
+	case "sheetelement":
+		sheetelement.ParseRoute(request)
+	case "character":
+		character.ParseRoute(request)
+	case "equip":
+		equip.ParseRoute(request)
+	case "forum":
+		forum.ParseRoute(request)
+	case "location":
+		location.ParseRoute(request)
+	case "guild":
+		guild.ParseRoute(request)
 	case "logs":
 		if request.Func == "getlogs" && request.IsApi {
 			logFiles, err := logs.GetLogs()
@@ -114,4 +137,89 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	default:
 		errorpages.NotFound(request)
 	}
+}
+
+func Automatic(db database.Database) error {
+	// file, err := os.Open("./config.json")
+	// defer fils.Close()
+	// if err != nil {
+	// 	logs.Save("config", "LoadConfiguration", "Error loading the config", logs.Error, err.Error())
+	// 	return err
+	// }
+	file, err := os.ReadFile("C:/Users/mhith/Downloads/LandMap.csv")
+	if err != nil {
+		logs.Save("config", "LoadConfiguration", "Error loading the config", logs.Error, err.Error())
+		return err
+	}
+	content := string(file)
+
+	vett := strings.Split(content, "\n")
+	var tbl [][]string
+
+	for _, v := range vett {
+		var tempRow []string
+		row := strings.Split(v, "\",\"")
+		for i, _ := range row {
+			row[i] = strings.ReplaceAll(row[i], "\"", "")
+		}
+		tempRow = append(tempRow, row...)
+		tbl = append(tbl, tempRow)
+	}
+
+	for _, r := range tbl {
+
+		resp, err := http.Get("http://161.97.91.212:8080" + r[1])
+		if err != nil {
+			return err
+		}
+
+		// Create the file
+		out, err := os.Create("www" + r[1])
+		if err != nil {
+			return err
+		}
+
+		// Write the body to file
+		_, err = io.Copy(out, resp.Body)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		out.Close()
+
+		var eq location.Location
+		eq.Name = r[0]
+		eq.Image = "." + r[1]
+		temp, err := strconv.Atoi(r[2])
+		if err != nil {
+			return err
+		}
+		eq.X = int64(temp)
+		temp, err = strconv.Atoi(r[3])
+		if err != nil {
+			return err
+		}
+		eq.Y = int64(temp)
+		eq.Description = r[4]
+		eq.HasChat, err = strconv.ParseBool(r[5])
+		if err != nil {
+			return err
+		}
+
+		eq.IDInsertUser = 1
+		eq.IDEditUser = 1
+		location.DB = &db
+		err = eq.Add()
+
+		// temp, err = strconv.Atoi(r[6])
+		if err != nil {
+			return err
+		}
+		// eq.IDParent = int64(temp)
+
+		// fmt.Println(r[1])
+	}
+
+	return nil
+
 }
