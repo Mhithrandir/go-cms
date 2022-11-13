@@ -1170,155 +1170,87 @@ func InitializeDatabase() error {
 		return err
 	}
 
-	r.Package = ""
-	r.Func = "logout"
-	r.Type = route.Page
-	r.Method = route.Null
-	err = r.Add()
+func Automatic(db database.Database) error {
+	// file, err := os.Open("./config.json")
+	// defer fils.Close()
+	// if err != nil {
+	// 	logs.Save("config", "LoadConfiguration", "Error loading the config", logs.Error, err.Error())
+	// 	return err
+	// }
+	file, err := os.ReadFile("C:/Users/mhith/Downloads/LandMap.csv")
 	if err != nil {
+		logs.Save("config", "LoadConfiguration", "Error loading the config", logs.Error, err.Error())
 		return err
 	}
-	r, err = route.GetRoute(r.Package, r.Func, r.Type, r.Method)
-	if err != nil {
-		return err
-	}
-	for i := 0; i < len(r.Permissions); i++ {
-		if r.Permissions[i].UserType.Description != "Guest" {
-			r.Permissions[i].Enabled = true
+	content := string(file)
+
+	vett := strings.Split(content, "\n")
+	var tbl [][]string
+
+	for _, v := range vett {
+		var tempRow []string
+		row := strings.Split(v, "\",\"")
+		for i, _ := range row {
+			row[i] = strings.ReplaceAll(row[i], "\"", "")
 		}
-	}
-	err = r.Update()
-	if err != nil {
-		return err
+		tempRow = append(tempRow, row...)
+		tbl = append(tbl, tempRow)
 	}
 
-	// #endregion
+	for _, r := range tbl {
 
-	// #region Common Menu
+		resp, err := http.Get("http://161.97.91.212:8080" + r[1])
+		if err != nil {
+			return err
+		}
 
-	var m menu.Menu
-	menu.DB = &db
-	m.MenuName = "MainMenu"
-	m.Name = "Login"
-	m.Parent = -1
-	r, err = route.GetRoute("", "login", route.Page, route.Null)
-	if err != nil {
-		return err
-	}
-	m.IDRoute = r.ID
-	m.Order = 98
-	err = m.Add()
-	if err != nil {
-		return err
-	}
+		// Create the file
+		out, err := os.Create("www" + r[1])
+		if err != nil {
+			return err
+		}
 
-	m.Name = "Register"
-	r, err = route.GetRoute("", "register", route.Page, route.Null)
-	if err != nil {
-		return err
-	}
-	m.IDRoute = r.ID
-	m.Order = 99
-	err = m.Add()
-	if err != nil {
-		return err
-	}
+		// Write the body to file
+		_, err = io.Copy(out, resp.Body)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+		out.Close()
 
-	m.Name = "Home"
-	r, err = route.GetRoute("", "home", route.Page, route.Null)
-	if err != nil {
-		return err
-	}
-	m.IDRoute = r.ID
-	m.Order = 0
-	err = m.Add()
-	if err != nil {
-		return err
-	}
+		var eq location.Location
+		eq.Name = r[0]
+		eq.Image = "." + r[1]
+		temp, err := strconv.Atoi(r[2])
+		if err != nil {
+			return err
+		}
+		eq.X = int64(temp)
+		temp, err = strconv.Atoi(r[3])
+		if err != nil {
+			return err
+		}
+		eq.Y = int64(temp)
+		eq.Description = r[4]
+		eq.HasChat, err = strconv.ParseBool(r[5])
+		if err != nil {
+			return err
+		}
 
-	m.Name = "Configuration"
-	r, err = route.GetRoute("fake", "", "", route.Null)
-	if err != nil {
-		return err
-	}
-	m.IDRoute = r.ID
-	m.Order = 10
-	err = m.Add()
-	if err != nil {
-		return err
-	}
+		eq.IDInsertUser = 1
+		eq.IDEditUser = 1
+		location.DB = &db
+		err = eq.Add()
 
-	menuParent, err := menu.GetMenuFromName(m.MenuName, m.Name)
-	if err != nil {
-		return err
-	}
+		// temp, err = strconv.Atoi(r[6])
+		if err != nil {
+			return err
+		}
+		// eq.IDParent = int64(temp)
 
-	m.Name = "Users"
-	r, err = route.GetRoute("", "users", route.Page, route.Null)
-	if err != nil {
-		return err
+		// fmt.Println(r[1])
 	}
-	m.IDRoute = r.ID
-	m.Order = 0
-	m.Parent = menuParent.ID
-	err = m.Add()
-	if err != nil {
-		return err
-	}
-
-	m.Name = "UserTypes"
-	r, err = route.GetRoute("", "usertypes", route.Page, route.Null)
-	if err != nil {
-		return err
-	}
-	m.IDRoute = r.ID
-	m.Order = 10
-	m.Parent = menuParent.ID
-	err = m.Add()
-	if err != nil {
-		return err
-	}
-
-	m.Name = "Routes"
-	r, err = route.GetRoute("", "routes", route.Page, route.Null)
-	if err != nil {
-		return err
-	}
-	m.IDRoute = r.ID
-	m.Order = 20
-	m.Parent = menuParent.ID
-	err = m.Add()
-	if err != nil {
-		return err
-	}
-
-	m.Name = "Menus"
-	r, err = route.GetRoute("", "menus", route.Page, route.Null)
-	if err != nil {
-		return err
-	}
-	m.IDRoute = r.ID
-	m.Order = 30
-	m.Parent = menuParent.ID
-	err = m.Add()
-	if err != nil {
-		return err
-	}
-
-	m.Name = "Logout"
-	r, err = route.GetRoute("", "logout", route.Page, route.Null)
-	if err != nil {
-		return err
-	}
-	m.IDRoute = r.ID
-	m.Order = 30
-	m.Parent = -1
-	err = m.Add()
-	if err != nil {
-		return err
-	}
-
-	// #endregion
 
 	return nil
+
 }
