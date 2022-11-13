@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"cms/logs"
+	"go-desk/logs"
 )
 
 //LoadConfiguration Load the config file

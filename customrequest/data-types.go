@@ -1,8 +1,8 @@
 package customrequest
 
 import (
-	"cms/config"
-	"cms/database"
+	"go-desk/config"
+	"go-desk/database"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
@@ -17,8 +17,7 @@ type CustomRequest struct {
 	Claims     Claims              `json:"Claims"`
 	Package    string              `json:"Package"`
 	Func       string              `json:"Func"`
-	IsBakcEnd  bool                `json:"IsBakcEnd"`
-	IsApi      bool                `json:"IsApi"`
+	Type       string              `json:"Type"`
 }
 
 //Claims struct for JWT

@@ -1,7 +1,7 @@
 package usertype
 
 import (
-	"cms/database"
+	"go-desk/database"
 )
 
 //DB variables to handle database

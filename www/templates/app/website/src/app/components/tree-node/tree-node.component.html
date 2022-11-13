@@ -1,9 +1,0 @@
-<div class="tree-node">
-    <span [ngClass]="{ 'header': !IsExpanded, 'header-expanded': IsExpanded, 'active': Active }" (click)="toggle()">
-        <span [ngClass]="{ 'icon': !IsExpanded, 'icon-expanded': IsExpanded }" ></span>
-        {{ title }}
-    </span>
-</div>
-<div class="content ml-1" [@openClose]="IsExpanded ? 'open' : 'closed'">
-    <ng-content></ng-content>
-</div>

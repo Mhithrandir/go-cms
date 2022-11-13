@@ -1,21 +1,38 @@
 package route
 
 import (
-	"cms/database"
-	"cms/usertype"
+	"go-desk/database"
+	"go-desk/usertype"
 )
 
 //DB variables to handle database
 var DB *database.Database
 
+type RequestMethod string
+
+const (
+	GET    RequestMethod = "GET"
+	POST   RequestMethod = "POST"
+	DELETE RequestMethod = "DELETE"
+	UPDATE RequestMethod = "UPDATE"
+	Null   RequestMethod = ""
+)
+
+type RequestType string
+
+const (
+	Api  RequestType = "Api"
+	Page RequestType = "Page"
+)
+
 //Route struct for the Route table
 type Route struct {
 	Package     string            `json:"Package"`
 	Func        string            `json:"Func"`
-	Type        string            `json:"Type"`
+	Type        RequestType       `json:"Type"`
 	Permissions []RoutePermission `json:"Permissions"`
 	Path        string            `json:"Path"`
-	Methods     string            `json:"Methods"`
+	Method      RequestMethod     `json:"Method"`
 	database.BaseTable
 }
 

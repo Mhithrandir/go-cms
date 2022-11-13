@@ -1,19 +1,15 @@
 package usertype
 
 import (
-	"cms/commons"
-	"cms/logs"
 	"database/sql"
 	"errors"
+	"go-desk/commons"
+	"go-desk/logs"
 )
 
 //Return a usertype for a specific description
 func GetUserTypeFromDescription(desc string) (UserType, error) {
-	sql, err := DB.GetQuery("UserTypePrinc")
-	if err != nil {
-		return UserType{}, err
-	}
-	reader, err := DB.Reader(sql+" WHERE description = ?", desc)
+	reader, err := DB.Reader("GetUserTypeFromDescription", desc)
 	if err != nil {
 		return UserType{}, err
 	}
@@ -32,11 +28,7 @@ func GetUserTypeFromDescription(desc string) (UserType, error) {
 
 //Load alla usertype
 func Load() ([]UserType, error) {
-	sql, err := DB.GetQuery("UserTypePrinc")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql)
+	reader, err := DB.Reader("LoadUserType")
 	if err != nil {
 		return nil, err
 	}

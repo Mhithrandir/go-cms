@@ -1,20 +1,17 @@
 package route
 
 import (
-	"cms/commons"
-	"cms/logs"
-	"cms/usertype"
 	"database/sql"
+	"errors"
+	"go-desk/commons"
+	"go-desk/logs"
+	"go-desk/usertype"
 	"sort"
 )
 
 //Exist check if routes exist
 func (r Route) Exist() (bool, error) {
-	sql, err := DB.GetQuery("GetRoutes")
-	if err != nil {
-		return false, err
-	}
-	reader, err := DB.Reader(sql+" WHERE package = ? AND func = ? AND Type = ?", r.Package, r.Func, r.Type)
+	reader, err := DB.Reader("RouteExist", r.Package, r.Func, r.Type)
 	if err != nil {
 		return false, err
 	}
@@ -28,11 +25,7 @@ func (r Route) Exist() (bool, error) {
 
 //LoadRoutes return all routes in the database
 func LoadRoutes(start, end int) ([]Route, error) {
-	sql, err := DB.GetQuery("GetRoutes")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql+" ORDER BY Type, Package, Func LIMIT ?, ?", start, end)
+	reader, err := DB.Reader("LoadRoutes", start, end)
 	if err != nil {
 		return nil, err
 	}
@@ -53,12 +46,8 @@ func LoadRoutes(start, end int) ([]Route, error) {
 }
 
 //LoadRoutes return all routes in the database
-func LoadRoutesFiltered(_package, _func, _type string) ([]Route, error) {
-	sql, err := DB.GetQuery("GetRoutes")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql+" WHERE Package LIKE ? AND Func LIKE ? AND type LIKE ? ORDER BY Type, Package, Func ", "%"+_package+"%", "%"+_func+"%", "%"+_type+"%")
+func LoadRoutesFiltered(filter string) ([]Route, error) {
+	reader, err := DB.Reader("LoadRoutesFiltered", "%"+filter+"%", "%"+filter+"%", "%"+filter+"%")
 	if err != nil {
 		return nil, err
 	}
@@ -80,28 +69,20 @@ func LoadRoutesFiltered(_package, _func, _type string) ([]Route, error) {
 
 //CountRoute count all records in the table
 func CountRoute() (int64, error) {
-	sql, err := DB.GetQuery("CountRoute")
-	if err != nil {
-		return -1, err
-	}
-	reader, err := DB.Reader(sql)
-	defer reader.Close()
-	reader.Next()
-	var count int64
-	reader.Scan(&count)
+	reader, err := DB.Reader("CountRoute")
 	if err != nil {
 		logs.Save("route", "CountRoute", "Error scanning the record", logs.Error, err.Error())
 		return -1, err
 	}
+	defer reader.Close()
+	reader.Next()
+	var count int64
+	reader.Scan(&count)
 	return count, nil
 }
 
 func (r Route) GetPermission() ([]RoutePermission, error) {
-	sql, err := DB.GetQuery("RoutePermissionPrinc")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql, r.ID, r.Func, r.Package, r.Type)
+	reader, err := DB.Reader("GetRoutePermission", r.ID, r.Func, r.Package, r.Type)
 	if err != nil {
 		return nil, err
 	}
@@ -109,26 +90,6 @@ func (r Route) GetPermission() ([]RoutePermission, error) {
 	reader.Close()
 	if err != nil {
 		return nil, err
-	}
-	//Insert empty permissions
-	usertype.DB = DB
-	usertypes, err := usertype.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, us := range usertypes {
-		found := false
-		for i, r := range results {
-			if us.Description == r.UserType.Description {
-				results[i].Enabled = true
-				found = true
-				break
-			}
-		}
-		if !found {
-			results = append(results, RoutePermission{IDRoute: r.ID, IDUserType: us.ID, Enabled: found, UserType: us})
-		}
 	}
 
 	sort.SliceStable(results, func(i, j int) bool {
@@ -143,7 +104,7 @@ func (r Route) CheckRoute(iduserType int64) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	results, err := DB.ScanTable(sql, iduserType, r.Package, r.Func, r.Type, r.Methods)
+	results, err := DB.ScanTable(sql, iduserType, r.Package, r.Func, r.Type, r.Method)
 	if err != nil {
 		return false, err
 	}
@@ -151,12 +112,8 @@ func (r Route) CheckRoute(iduserType int64) (bool, error) {
 	return (len(results) > 0), nil
 }
 
-func GetRoute(_package, _func, _type, _methods string) (Route, error) {
-	sql, err := DB.GetQuery("GetRoute")
-	if err != nil {
-		return Route{}, err
-	}
-	reader, err := DB.Reader(sql, _package, _func, _type, _methods)
+func GetRoute(_package, _func string, _type RequestType, _method RequestMethod) (Route, error) {
+	reader, err := DB.Reader("GetRoute", _package, _func, _type, _method)
 	if err != nil {
 		return Route{}, err
 	}
@@ -171,6 +128,10 @@ func GetRoute(_package, _func, _type, _methods string) (Route, error) {
 		if err != nil {
 			return Route{}, err
 		}
+	}
+
+	if len(results) == 0 {
+		return Route{}, errors.New("No routes found")
 	}
 
 	return results[0], err
@@ -193,11 +154,7 @@ func GetRouteFromID(id int64) (Route, error) {
 		})
 		return Route{Permissions: p}, nil
 	}
-	sql, err := DB.GetQuery("GetRouteFromID")
-	if err != nil {
-		return Route{}, err
-	}
-	reader, err := DB.Reader(sql, id)
+	reader, err := DB.Reader("GetRouteFromID", id)
 	if err != nil {
 		return Route{}, err
 	}
@@ -227,7 +184,7 @@ func read(reader *sql.Rows) ([]Route, error) {
 		err := reader.Scan(&row.Package,
 			&row.Func,
 			&row.Type,
-			&row.Methods,
+			&row.Method,
 			&row.ID,
 			&appInsertDate,
 			&row.IDInsertUser,
@@ -239,17 +196,14 @@ func read(reader *sql.Rows) ([]Route, error) {
 		}
 		row.InsertDate, _ = commons.ParseMysqlDateTime(appInsertDate)
 		row.EditDate, _ = commons.ParseMysqlDateTime(appEditDate)
-		if row.Type != "*" && row.Package != "*" && row.Func != "*" {
-			row.Path = "../"
-			if row.Type != "fe" {
-				row.Path += row.Type + "/"
-			}
-			if row.Package != "page" {
-				row.Path += row.Package + "/"
-			}
-			row.Path += row.Func
+		if row.Package == "fake" {
+			row.Path = "fake"
 		} else {
-			row.Path = ""
+			if row.Package != "" {
+				row.Path = "./" + row.Package + "/" + row.Func
+			} else {
+				row.Path = "./" + row.Func
+			}
 		}
 
 		rows = append(rows, row)
@@ -272,6 +226,7 @@ func readPermission(reader *sql.Rows) ([]RoutePermission, error) {
 		err := reader.Scan(&row.IDRoute,
 			&row.IDUserType,
 			&usertypeDescription,
+			&row.Enabled,
 			&usertypeID,
 			&appInsertDate,
 			&usertypeIDInsertUser,
@@ -295,7 +250,6 @@ func readPermission(reader *sql.Rows) ([]RoutePermission, error) {
 		if usertypeIDEditUser.Valid {
 			row.UserType.IDEditUser = usertypeIDEditUser.Int64
 		}
-		row.Enabled = true
 		rows = append(rows, row)
 	}
 	return rows, nil

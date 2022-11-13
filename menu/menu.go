@@ -1,10 +1,9 @@
 package menu
 
 import (
-	"cms/commons"
-	"cms/customrequest"
-	"cms/errorpages"
-	"cms/logs"
+	"go-desk/customrequest"
+	"go-desk/logs"
+	"go-desk/responses"
 	"strconv"
 )
 
@@ -23,8 +22,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 		Add(request)
 	case "update":
 		Update(request)
-	default:
-		errorpages.NotFound(request)
+		responses.NotFound(request)
 	}
 }
 
@@ -34,10 +32,10 @@ func GetMenu(request customrequest.CustomRequest) {
 
 	result, err := LoadMenu(request.Parameters["menuName"], request.Claims.IDUserType, -1)
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, result, 0, 0)
+	responses.Ok(request, result, 0, 0)
 }
 
 //GetPlainMenu Load all menu
@@ -49,7 +47,7 @@ func GetPlainMenu(request customrequest.CustomRequest) {
 		page, err = strconv.Atoi(val)
 		if err != nil {
 			logs.Save("users", "LoadUsers", "Parameter page not valid", logs.Error, err.Error())
-			errorpages.BadRequest(request, err.Error())
+			responses.BadRequest(request, err.Error())
 			return
 		}
 	} else {
@@ -57,17 +55,17 @@ func GetPlainMenu(request customrequest.CustomRequest) {
 	}
 	result, err := LoadPlainMenu(page, 999)
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
 	count, err := CountMenu()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
-	commons.Ok(request, result, page, int(count)/request.Config.Pagination)
+	responses.Ok(request, result, page, int(count)/request.Config.Pagination)
 }
 
 //GetMenuNames Load all menu names
@@ -75,10 +73,10 @@ func GetMenuNames(request customrequest.CustomRequest) {
 	DB = request.DB
 	result, err := LoadMenuNames()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, result, -1, -1)
+	responses.Ok(request, result, -1, -1)
 }
 
 //Add add a menu item to the database
@@ -88,26 +86,26 @@ func Add(request customrequest.CustomRequest) {
 	var menuJSON Menu
 	err := request.ParserBodyRequest(&menuJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := menuJSON.Exist()
 	if exist && err == nil {
-		errorpages.BadRequest(request, "Menu already exist")
+		responses.BadRequest(request, "Menu already exist")
 		return
 	} else if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 	menuJSON.IDInsertUser = request.Claims.IDUser
 	menuJSON.IDEditUser = request.Claims.IDUser
 	err = menuJSON.Add()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }
 
 //Update a menu item to the database
@@ -117,25 +115,25 @@ func Update(request customrequest.CustomRequest) {
 	var menuJSON Menu
 	err := request.ParserBodyRequest(&menuJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := menuJSON.Exist()
 	if !exist && err == nil {
-		errorpages.BadRequest(request, "Menu not exist")
+		responses.BadRequest(request, "Menu not exist")
 		return
 	} else if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
 	err = menuJSON.Update()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }
 
 //Delete delete a menu item from database
@@ -145,14 +143,14 @@ func Delete(request customrequest.CustomRequest) {
 	id, err := strconv.Atoi(request.Parameters["ID"])
 	if err != nil {
 		logs.Save("menu", "DeleteMenu", "Parameter id not valid", logs.Error, err.Error())
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	err = DeleteRecord(int64(id))
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }

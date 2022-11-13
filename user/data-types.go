@@ -1,8 +1,8 @@
 package user
 
 import (
-	"cms/database"
-	"cms/usertype"
+	"go-desk/database"
+	"go-desk/usertype"
 	"time"
 )
 

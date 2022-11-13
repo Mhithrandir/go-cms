@@ -1,19 +1,15 @@
 package menu
 
 import (
-	"cms/commons"
-	"cms/logs"
-	"cms/route"
 	"database/sql"
+	"go-desk/commons"
+	"go-desk/logs"
+	"go-desk/route"
 )
 
 //LoadMenu load a specific menu from the database, this is a recursive func that load all menu and all childrens of each menu item
 func LoadMenu(menuname string, idusertype, parent int64) ([]Menu, error) {
-	sql, err := DB.GetQuery("GetMenu")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql, idusertype, menuname, parent)
+	reader, err := DB.Reader("GetMenu", idusertype, menuname, parent)
 	if err != nil {
 		return nil, err
 	}
@@ -35,11 +31,7 @@ func LoadMenu(menuname string, idusertype, parent int64) ([]Menu, error) {
 
 //LoadMenuNames load all menu names
 func LoadMenuNames() ([]string, error) {
-	sql, err := DB.GetQuery("GetMenuNames")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql)
+	reader, err := DB.Reader("GetMenuNames")
 	if err != nil {
 		return nil, err
 	}
@@ -59,11 +51,7 @@ func LoadMenuNames() ([]string, error) {
 
 //LoadPlainMenu load all record from tables menus
 func LoadPlainMenu(start, end int) ([]Menu, error) {
-	sql, err := DB.GetQuery("GetMenuPlain")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql, start, end)
+	reader, err := DB.Reader("GetMenuPlain", start, end)
 	if err != nil {
 		return nil, err
 	}
@@ -72,28 +60,13 @@ func LoadPlainMenu(start, end int) ([]Menu, error) {
 	if err != nil {
 		return nil, err
 	}
-	// for i, r := range results {
-	// 	perm, err := r.GetPermission()
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-
-	// 	results[i].Permissions = perm
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
 
 	return results, nil
 }
 
 //CountMenu count all records in the table
 func CountMenu() (int64, error) {
-	sql, err := DB.GetQuery("CountMenuPlain")
-	if err != nil {
-		return -1, err
-	}
-	reader, err := DB.Reader(sql)
+	reader, err := DB.Reader("CountMenuPlain")
 	defer reader.Close()
 	reader.Next()
 	var count int64
@@ -105,69 +78,9 @@ func CountMenu() (int64, error) {
 	return count, nil
 }
 
-// func (r Menu) GetPermission() ([]MenuPermission, error) {
-// 	sql, err := DB.GetQuery("MenuPermissionPrinc")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	reader, err := DB.Reader(sql, r.ID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	results, err := readPermission(reader)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	//Insert empty permissions
-// 	usertype.DB = DB
-// 	usertypes, err := usertype.Load()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	for _, us := range usertypes {
-// 		found := false
-// 		for i, r := range results {
-// 			if us.Description == r.UserType.Description {
-// 				results[i].Enabled = true
-// 				found = true
-// 				break
-// 			}
-// 		}
-// 		if !found {
-// 			results = append(results, MenuPermission{IDMenu: r.ID, IDUserType: us.ID, Enabled: found, UserType: us})
-// 		}
-// 	}
-
-// 	sort.SliceStable(results, func(i, j int) bool {
-// 		return results[i].IDUserType < results[j].IDUserType
-// 	})
-// 	return results, err
-// }
-
-// func (r Menu) CheckMenuPermission(idusertype int64) (bool, error) {
-// 	sql, err := DB.GetQuery("MenuPermissionPrinc")
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	reader, err := DB.Reader(sql, r.ID)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	results, err := readPermission(reader)
-// 	if err != nil {
-// 		return false, err
-// 	}
-// 	for _, p := range results {
-// 		if p.IDUserType == idusertype {
-// 			return true, nil
-// 		}
-// 	}
-// 	return false, nil
-// }
-
 //Exist check if a menupermission records alreasdy exist
 func (m Menu) Exist() (bool, error) {
-	result, err := DB.ScanTable("SELECT * FROM menus WHERE menuname = ? AND name = ?", m.MenuName, m.Name)
+	result, err := DB.ScanTable("MenuExist", m.MenuName, m.Name)
 	if err != nil {
 		logs.Save("menu", "Exist", "Error selecting", logs.Error, err.Error())
 		return false, err
@@ -176,11 +89,7 @@ func (m Menu) Exist() (bool, error) {
 }
 
 func GetMenuFromID(id int64) (Menu, error) {
-	sql, err := DB.GetQuery("GetMenuFromID")
-	if err != nil {
-		return Menu{}, err
-	}
-	reader, err := DB.Reader(sql, id)
+	reader, err := DB.Reader("GetMenuFromID", id)
 	defer reader.Close()
 	if err != nil {
 		return Menu{}, err
@@ -190,12 +99,20 @@ func GetMenuFromID(id int64) (Menu, error) {
 		return Menu{}, err
 	}
 
-	// for i, r := range results {
-	// 	results[i].Permissions, err = r.GetPermission()
-	// 	if err != nil {
-	// 		return Menu{}, err
-	// 	}
-	// }
+	return results[0], err
+}
+
+//GetMenuFromName returns a menu from a name
+func GetMenuFromName(menuname, name string) (Menu, error) {
+	reader, err := DB.Reader("GetMenuFromName", menuname, name)
+	defer reader.Close()
+	if err != nil {
+		return Menu{}, err
+	}
+	results, err := read(reader)
+	if err != nil {
+		return Menu{}, err
+	}
 
 	return results[0], err
 }
@@ -210,7 +127,7 @@ func read(reader *sql.Rows) ([]Menu, error) {
 			&record.Name,
 			&record.Parent,
 			&record.IDRoute,
-			&record.MenuOrder,
+			&record.Order,
 			&record.ID,
 			&appInsertDate,
 			&record.IDInsertUser,
@@ -231,47 +148,3 @@ func read(reader *sql.Rows) ([]Menu, error) {
 	}
 	return results, nil
 }
-
-// readPermission read all permission for a specific menu item
-// func readPermission(reader *sql.Rows) ([]MenuPermission, error) {
-// 	var rows []MenuPermission
-// 	for reader.Next() {
-// 		var row MenuPermission
-// 		var appInsertDate []byte
-// 		var appEditDate []byte
-// 		//Possible null values
-// 		var usertypeDescription sql.NullString
-// 		var usertypeID sql.NullInt64
-// 		var usertypeIDInsertUser sql.NullInt64
-// 		var usertypeIDEditUser sql.NullInt64
-// 		err := reader.Scan(&row.IDMenu,
-// 			&row.IDUserType,
-// 			&usertypeDescription,
-// 			&usertypeID,
-// 			&appInsertDate,
-// 			&usertypeIDInsertUser,
-// 			&appEditDate,
-// 			&usertypeIDEditUser)
-// 		if err != nil {
-// 			logs.Save("menu", "readPermission", "Error scanning the record", logs.Error, err.Error())
-// 			return nil, err
-// 		}
-// 		row.UserType.InsertDate, _ = commons.ParseMysqlDateTime(appInsertDate)
-// 		row.UserType.EditDate, _ = commons.ParseMysqlDateTime(appEditDate)
-// 		if usertypeDescription.Valid {
-// 			row.UserType.Description = usertypeDescription.String
-// 		}
-// 		if usertypeID.Valid {
-// 			row.UserType.ID = usertypeID.Int64
-// 		}
-// 		if usertypeIDInsertUser.Valid {
-// 			row.UserType.IDInsertUser = usertypeIDInsertUser.Int64
-// 		}
-// 		if usertypeIDEditUser.Valid {
-// 			row.UserType.IDEditUser = usertypeIDEditUser.Int64
-// 		}
-// 		row.Enabled = true
-// 		rows = append(rows, row)
-// 	}
-// 	return rows, nil
-// }

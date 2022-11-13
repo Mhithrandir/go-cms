@@ -1,18 +1,14 @@
 package route
 
-import "cms/logs"
+import "go-desk/logs"
 
 //Add add a routes
 func (r Route) Add() error {
-	sql, err := DB.GetQuery("AddRoute")
-	if err != nil {
-		return err
-	}
-	err = DB.Query(sql,
+	err := DB.Query("AddRoute",
 		r.Package,
 		r.Func,
 		r.Type,
-		r.Methods,
+		r.Method,
 		r.IDInsertUser,
 		r.IDInsertUser)
 	if err != nil {
@@ -21,14 +17,15 @@ func (r Route) Add() error {
 	}
 	logs.Save("routes", "Add", "Added a route", logs.Message, r)
 
-	tempRoute, err := GetRoute(r.Package, r.Func, r.Type, r.Methods)
+	tempRoute, err := GetRoute(r.Package, r.Func, r.Type, r.Method)
 	if err != nil {
 		return err
 	}
 
 	r.ID = tempRoute.ID
-	//Run the update to save all the permissions
-	return r.Update()
+	// Add all usertype
+	return DB.Query("AddAllRoutePermission", r.ID)
+	// return r.Update()
 }
 
 //DeleteRecord a route
@@ -38,7 +35,7 @@ func DeleteRecord(id int64) error {
 		return err
 	}
 	//Delete all permission so cleans the routepermission table
-	for i, _ := range r.Permissions {
+	for i := range r.Permissions {
 		r.Permissions[i].Enabled = false
 	}
 	r.Update()
@@ -47,53 +44,37 @@ func DeleteRecord(id int64) error {
 
 //Update a route
 func (r Route) Update() error {
-	err := DB.Query("UPDATE Routes SET Package = ? WHERE ID = ?", r.Package, r.ID)
+	err := DB.Query("UpdateRoutePackage", r.Package, r.ID)
 	if err != nil {
 		logs.Save("route", "Update", "Error updating Package", logs.Error, err.Error())
 		return err
 	}
-	err = DB.Query("UPDATE Routes SET Func = ? WHERE ID = ?", r.Func, r.ID)
+	err = DB.Query("UpdateRouteFunc", r.Func, r.ID)
 	if err != nil {
 		logs.Save("route", "Update", "Error updating Func", logs.Error, err.Error())
 		return err
 	}
-	err = DB.Query("UPDATE Routes SET Type = ? WHERE ID = ?", r.Type, r.ID)
+	err = DB.Query("UpdateRouteType", r.Type, r.ID)
 	if err != nil {
 		logs.Save("route", "Update", "Error updating Type", logs.Error, err.Error())
 		return err
 	}
-	err = DB.Query("UPDATE Routes SET Methods = ? WHERE ID = ?", r.Methods, r.ID)
+	err = DB.Query("UpdateRouteMethod", r.Method, r.ID)
 	if err != nil {
 		logs.Save("route", "Update", "Error updating Type", logs.Error, err.Error())
 		return err
 	}
-	err = DB.Query("UPDATE Routes SET EditDate = NOW(), IDEditUser = ? WHERE ID = ?", r.IDEditUser, r.ID)
+	err = DB.Query("UpdateRouteEdit", r.IDEditUser, r.ID)
 	if err != nil {
 		logs.Save("route", "Update", "Error updating EditDate", logs.Error, err.Error())
 		return err
 	}
 
 	for _, p := range r.Permissions {
-		if p.Enabled {
-			exist, err := r.CheckRoute(p.IDUserType)
-			if err != nil {
-				return err
-			}
-			if !exist {
-				err = DB.Query("INSERT INTO RoutesPermission(IDRoute, IDUserType, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES(?, ?, NOW(), ?, NOW(), ?)",
-					r.ID, p.IDUserType, r.IDInsertUser, r.IDEditUser)
-				if err != nil {
-					logs.Save("routes", "Update", "Error adding Permission", logs.Error, err.Error())
-					return err
-				}
-			}
-		} else {
-			err = DB.Query("DELETE FROM RoutesPermission WHERE IDRoute = ? AND IDUserType = ?",
-				r.ID, p.IDUserType)
-			if err != nil {
-				logs.Save("routes", "Update", "Error deleteing Permission", logs.Error, err.Error())
-				return err
-			}
+		err = DB.Query("UpdateRoutePermissions", p.Enabled, r.ID, p.IDUserType)
+		if err != nil {
+			logs.Save("routes", "Update", "Error deleteing Permission", logs.Error, err.Error())
+			return err
 		}
 	}
 

@@ -1,8 +1,8 @@
 package user
 
 import (
-	"cms/commons"
-	"cms/logs"
+	"go-desk/commons"
+	"go-desk/logs"
 	"time"
 )
 
@@ -14,34 +14,34 @@ func (u User) SetLoggedIn() error {
 
 //Update a user
 func (u User) Update() error {
-	err := DB.Query("UPDATE Users SET Username = ? WHERE ID = ?", u.Username, u.ID)
+	err := DB.Query("UpdateUserUsername", u.Username, u.ID)
 	if err != nil {
 		logs.Save("users", "Update", "Error updating Username", logs.Error, err.Error())
 		return err
 	}
 	if u.Password != "" {
-		err = DB.Query("UPDATE Users SET Password = ?, DatePassword = NOW() WHERE ID = ?", commons.CryptPassword(u.Password), u.ID)
+		err = DB.Query("UpdateUserPassword", commons.CryptPassword(u.Password), u.ID)
 		if err != nil {
 			logs.Save("users", "Update", "Error updating Password", logs.Error, err.Error())
 			return err
 		}
 	}
-	err = DB.Query("UPDATE Users SET PasswordDuration = ? WHERE ID = ?", u.PasswordDuration, u.ID)
+	err = DB.Query("UpdateUserPasswordDuration", u.PasswordDuration, u.ID)
 	if err != nil {
 		logs.Save("users", "Update", "Error updating PasswordDuration", logs.Error, err.Error())
 		return err
 	}
-	err = DB.Query("UPDATE Users SET IDUserType = ? WHERE ID = ?", u.IDUserType, u.ID)
+	err = DB.Query("UpdateUserIDUserType", u.IDUserType, u.ID)
 	if err != nil {
 		logs.Save("users", "Update", "Error updating IDUserType", logs.Error, err.Error())
 		return err
 	}
-	err = DB.Query("UPDATE Users SET CodeResetPassword = ? WHERE ID = ?", u.CodeResetPassword, u.ID)
+	err = DB.Query("UpdateUserCodeResetPassword", u.CodeResetPassword, u.ID)
 	if err != nil {
 		logs.Save("users", "Update", "Error updating IDUserType", logs.Error, err.Error())
 		return err
 	}
-	err = DB.Query("UPDATE Users SET EditDate = NOW(), IDEditUser = ? WHERE ID = ?", u.IDEditUser, u.ID)
+	err = DB.Query("UpdateUserEdit", u.IDEditUser, u.ID)
 	if err != nil {
 		logs.Save("users", "Update", "Error updating EditDate", logs.Error, err.Error())
 		return err
@@ -51,18 +51,14 @@ func (u User) Update() error {
 
 //Delete a route
 func Delete(id int64) error {
-	return DB.Delete("users", id)
+	return DB.Delete("Users", id)
 }
 
 //Add add a user
 func (u User) Add() error {
-	sql, err := DB.GetQuery("AddUser")
-	if err != nil {
-		return err
-	}
-	err = DB.Query(sql,
+	err := DB.Query("AddUser",
 		u.Username,
-		commons.CryptPassword(u.Password),
+		u.Password,
 		u.PasswordDuration,
 		u.IDUserType,
 		u.CodeResetPassword,

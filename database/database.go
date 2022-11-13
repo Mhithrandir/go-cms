@@ -1,9 +1,14 @@
 package database
 
 import (
-	"cms/logs"
 	"context"
 	"database/sql"
+	"go-desk/logs"
+	"log"
+	"os"
+	"strconv"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var db Database
@@ -14,6 +19,13 @@ func New(driver, dns string) (Database, error) {
 	var err error
 	_driver = driver
 	_dns = dns
+	if _, err := os.Stat(dns); err != nil {
+		_, err := os.Create(dns)
+		if err != nil {
+			logs.Save("database", "Initialize", "Error creating the database", logs.Error, err.Error())
+			return Database{}, err
+		}
+	}
 	db.Conn, err = sql.Open(driver, dns)
 	if err != nil {
 		logs.Save("database", "Initialize", "Error opening the connection with the database", logs.Error, err.Error())
@@ -23,14 +35,18 @@ func New(driver, dns string) (Database, error) {
 }
 
 //Query execute a write only query
-func (d Database) Query(sql string, args ...interface{}) error {
-	var err error
-	// err = CheckConnection()
-	// if err != nil {
-	// 	return err
-	// }
+func (db Database) Query(name string, args ...interface{}) error {
+	sql, err := db.GetQuery(name)
+	if err != nil {
+		return err
+	}
+	return db.QueryCmd(sql, args...)
+}
+
+//Query execute a write only query
+func (db Database) QueryCmd(sql string, args ...interface{}) error {
 	ctx := context.Background()
-	_, err = d.Conn.ExecContext(ctx, sql, args...)
+	_, err := db.Conn.ExecContext(ctx, sql, args...)
 	ctx.Done()
 	if err != nil {
 		logs.Save("database", "Query", "Error executing ExecContext", logs.Error, err.Error())
@@ -40,15 +56,20 @@ func (d Database) Query(sql string, args ...interface{}) error {
 }
 
 //Reader func to execute a query in the database
-func (db Database) Reader(sqlCommand string, params ...interface{}) (*sql.Rows, error) {
+func (db Database) Reader(name string, args ...interface{}) (*sql.Rows, error) {
+	sql, err := db.GetQuery(name)
+	if err != nil {
+		return nil, err
+	}
+	return db.ReaderCmd(sql, args...)
+}
+
+//Reader func to execute a query in the database
+func (db Database) ReaderCmd(sqlCommand string, args ...interface{}) (*sql.Rows, error) {
 	var err error
-	// err = CheckConnection()
-	// if err != nil {
-	// 	return nil, err
-	// }
 	ctx := context.Background()
 	var rows *sql.Rows
-	rows, err = db.Conn.QueryContext(ctx, sqlCommand, params...)
+	rows, err = db.Conn.QueryContext(ctx, sqlCommand, args...)
 	ctx.Done()
 	if err != nil {
 		logs.Save("database", "Reader", "Error executing QueryContext", logs.Error, err.Error())
@@ -59,7 +80,7 @@ func (db Database) Reader(sqlCommand string, params ...interface{}) (*sql.Rows, 
 
 //GetQuery return a query stored in the database
 func (db Database) GetQuery(queryName string) (string, error) {
-	reader, err := db.Reader("SELECT DISTINCT Command FROM StoredQueries WHERE Name = ?", queryName)
+	reader, err := db.ReaderCmd("SELECT DISTINCT Command FROM StoredQueries WHERE Name = ?", queryName)
 	if err != nil {
 		return "", err
 	}
@@ -76,7 +97,7 @@ func (db Database) GetQuery(queryName string) (string, error) {
 
 //ScanTable scan a table
 func (db Database) ScanTable(sqlCommand string, params ...interface{}) ([]map[string]interface{}, error) {
-	reader, err := db.Reader(sqlCommand, params...)
+	reader, err := db.ReaderCmd(sqlCommand, params...)
 	if err != nil {
 		return nil, err
 	}
@@ -129,48 +150,57 @@ func (db Database) ScanTable(sqlCommand string, params ...interface{}) ([]map[st
 
 //Add add a record in a table
 func (db Database) Delete(tableName string, id int64) error {
-	err := db.Query("DELETE FROM "+tableName+" WHERE ID = ?", id)
+	err := db.QueryCmd("DELETE FROM "+tableName+" WHERE ID = ?", id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-//Check if connection is valid
-func CheckConnection() error {
-	err := db.Conn.Ping()
-	if err != nil && err.Error() == "sql: database is closed" {
-		logs.Save("database", "Reader", "Tryng to renewing connection", logs.Warning, err.Error())
-		db.Conn.Close()
-		db, err = New(_driver, _dns)
-		if err != nil {
-			logs.Save("database", "Reader", "Error renewing connection", logs.Error, err.Error())
-			return err
-		}
-	} else if err != nil {
-		logs.Save("database", "Reader", "Error executing Ping", logs.Error, err.Error())
-		return err
+//Get all object in database
+func (db Database) GetTables() ([]string, error) {
+	result, err := db.ScanTable("SELECT DISTINCT * FROM sqlite_master")
+	if err != nil {
+		return nil, err
 	}
-	return nil
+	log.Println(result)
+	return nil, nil
 }
 
-//Codice per ottenere una mappa con tutte le proprietà (anche le sottostrutture)
-// func GetFieldsFromRecord(record interface{}) map[string]reflect.Type {
-// 	t := reflect.TypeOf(record)
-// 	return GetFields(t)
-// }
-// func GetFields(t reflect.Type) map[string]reflect.Type {
-// 	//var fields []reflect.StructField
-// 	fields := make(map[string]reflect.Type)
-// 	for i := 0; i < t.NumField(); i++ {
-// 		if t.Field(i).Type.Kind() == reflect.Struct && t.Field(i).Type.Name() != "Time" {
-// 			tempFields := GetFields(t.Field(i).Type)
-// 			for y, _ := range tempFields {
-// 				fields[t.Field(i).Type.Name()+"."+tempFields[y].Name()] = tempFields[y]
-// 			}
-// 		} else {
-// 			fields[t.Field(i).Name] = t.Field(i).Type
-// 		}
-// 	}
-// 	return fields
-// }
+//Check if object exist
+func (db Database) Exist(name string) (bool, error) {
+	result, err := db.ScanTable("SELECT DISTINCT * FROM sqlite_master WHERE tbl_name = ?", name)
+	if err != nil {
+		return false, err
+	}
+	return len(result) > 0, nil
+}
+
+//Create table
+func (db Database) CreateTable(name string, fields []Field) error {
+	sql := "CREATE TABLE " + name + "("
+	for _, f := range fields {
+		sql += f.ToString() + ","
+	}
+	sql = sql[0:len(sql)-1] + ")"
+	return db.QueryCmd(sql)
+}
+
+//Insert new Stored Query
+func (db Database) InsertStoredQuery(name, command string) error {
+	return db.QueryCmd("INSERT INTO StoredQueries(Name, Command, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES(?, ?, DateTime('now'), 0, DateTime('now'), 0)", name, command)
+}
+
+func (f Field) ToString() string {
+	sql := f.Name + " " + f.Type
+	if f.Length > 0 {
+		sql += " (" + strconv.Itoa(f.Length) + ")"
+	}
+	if f.IsPrimary {
+		sql += " PRIMARY KEY"
+	}
+	if !f.IsPrimary && f.AllowNull {
+		sql += " NULL"
+	}
+	return sql
+}

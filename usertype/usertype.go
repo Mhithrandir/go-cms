@@ -1,10 +1,9 @@
 package usertype
 
 import (
-	"cms/commons"
-	"cms/customrequest"
-	"cms/errorpages"
-	"cms/logs"
+	"go-desk/customrequest"
+	"go-desk/logs"
+	"go-desk/responses"
 	"strconv"
 )
 
@@ -18,7 +17,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	case "add":
 		AddUserType(request)
 	default:
-		errorpages.NotFound(request)
+		responses.NotFound(request)
 	}
 }
 
@@ -28,9 +27,9 @@ func GetUserTypes(request customrequest.CustomRequest) {
 
 	result, err := Load()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 	}
-	commons.Ok(request, result, 0, 0)
+	responses.Ok(request, result, 0, 0)
 }
 
 //DeleteUserType delete a route from database
@@ -40,16 +39,16 @@ func DeleteUserType(request customrequest.CustomRequest) {
 	id, err := strconv.Atoi(request.Parameters["ID"])
 	if err != nil {
 		logs.Save("usertype", "DeleteUserType", "Parameter id not valid", logs.Error, err.Error())
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	err = Delete(int64(id))
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }
 
 //AddUserType insert a UserType in database
@@ -59,24 +58,24 @@ func AddUserType(request customrequest.CustomRequest) {
 	var userTypeJSON UserType
 	err := request.ParserBodyRequest(&userTypeJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := userTypeJSON.Exist()
 	if exist && err == nil {
-		errorpages.BadRequest(request, "UserType already exist")
+		responses.BadRequest(request, "UserType already exist")
 		return
 	} else if exist && err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 	userTypeJSON.IDInsertUser = request.Claims.IDUser
 	userTypeJSON.IDEditUser = request.Claims.IDUser
 	err = userTypeJSON.Add()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }

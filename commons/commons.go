@@ -1,52 +1,27 @@
 package commons
 
 import (
-	"cms/customrequest"
-	"cms/logs"
+	"bytes"
 	"crypto/md5"
 	"encoding/hex"
+	"go-desk/customrequest"
+	"go-desk/logs"
+	"image"
+	"image/jpeg"
+	_ "image/png"
+	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"net/mail"
 	"net/smtp"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/nfnt/resize"
 )
-
-//ExecuteHeader execute the header template
-func ExecuteHeader(request customrequest.CustomRequest) {
-	comm := template.New("template")
-	comm, err := template.ParseFiles("./www/templates/system/_header.htm")
-	if err != nil {
-		return
-	}
-	err = comm.Execute(request.Writer, nil)
-	if err != nil {
-		// InternalServerError(request, err)
-		return
-	}
-}
-
-//ExecuteFooter execute the footer template
-func ExecuteFooter(request customrequest.CustomRequest) {
-	comm := template.New("template")
-	comm, err := template.ParseFiles("./www/templates/system/_footer.htm")
-	if err != nil {
-		return
-	}
-	err = comm.Execute(request.Writer, nil)
-	if err != nil {
-		// InternalServerError(request, err)
-		return
-	}
-}
 
 //CommonLoad Generic func to be invoked before everything else
 func CommonLoad(request customrequest.CustomRequest) FunctionResponse {
@@ -134,45 +109,13 @@ func VerifyPassword(pass, passOld string) string {
 }
 
 //SendMail send a mail
-func SendMail(from mail.Address, to, subject, message string, request customrequest.CustomRequest) (bool, error) {
-
-	_ = smtp.PlainAuth("", request.Config.AccountMail.Username, request.Config.AccountMail.Password, request.Config.AccountMail.SMTPServer)
-	c, err := smtp.Dial(request.Config.AccountMail.SMTPServer + ":" + request.Config.AccountMail.Port)
-	if err != nil {
-		logs.Save("commons", "SendMail", "Error in Dial", logs.Error, err.Error())
-		log.Println(err)
-		return false, err
-	}
-	defer c.Close()
-	err = c.Mail(from.String())
+func SendMail(from, to, subject, message string, request customrequest.CustomRequest) (bool, error) {
+	auth := smtp.PlainAuth("", request.Config.AccountMail.Username, request.Config.AccountMail.Password, request.Config.AccountMail.SMTPServer)
+	var tempTo []string
+	tempTo = append(tempTo, to)
+	err := smtp.SendMail(request.Config.AccountMail.SMTPServer+":"+request.Config.AccountMail.Port, auth, from, tempTo, []byte(message))
 	if err != nil {
 		logs.Save("commons", "SendMail", "Error in Mail", logs.Error, err.Error())
-		return false, err
-	}
-	err = c.Rcpt(to)
-	if err != nil {
-		logs.Save("commons", "SendMail", "Error in Rcpt", logs.Error, err.Error())
-		return false, err
-	}
-	//???
-	data, err := c.Data()
-	if err != nil {
-		logs.Save("commons", "SendMail", "Errore in Data", logs.Error, err.Error())
-		return false, err
-	}
-	_, err = data.Write([]byte(message))
-	if err != nil {
-		logs.Save("commons", "SendMail", "Error in Write", logs.Error, err.Error())
-		return false, err
-	}
-	err = data.Close()
-	if err != nil {
-		logs.Save("commons", "SendMail", "Error in Close", logs.Error, err.Error())
-		return false, err
-	}
-	err = c.Quit()
-	if err != nil {
-		logs.Save("commons", "SendMail", "Error in Quit", logs.Error, err.Error())
 		return false, err
 	}
 	return true, nil
@@ -200,7 +143,7 @@ func UploadFile(request customrequest.CustomRequest, basePath string, extensions
 		return http.StatusBadRequest, "File is too big"
 	}
 
-	tempFile, err := ioutil.TempFile("./www/img/temp-ftp", "tempfile")
+	tempFile, err := ioutil.TempFile("./www/upload/temp-ftp", "tempfile")
 	if err != nil {
 		logs.Save("commons", "UploadFile", "Error uploading the file", logs.Error, err)
 		return http.StatusInternalServerError, "Error uploading the file"
@@ -237,4 +180,56 @@ func UploadFile(request customrequest.CustomRequest, basePath string, extensions
 	}
 
 	return http.StatusOK, basePath + handler.Filename
+}
+
+//ResizeImageresize an image
+func ResizeImage(path string, height, width uint) error {
+	reader, err := os.Open(path)
+	if err != nil {
+		logs.Save("commons", "ResizeImage", "Error opening the file", logs.Error, err)
+		return err
+	}
+
+	buf := make([]byte, 1024)
+	var file []byte
+	for {
+		_, err := reader.Read(buf)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logs.Save("commons", "ResizeImage", "Error reading the file", logs.Error, err)
+			return err
+		}
+		file = append(file, buf...)
+	}
+
+	// image, temp, err := image.Decode(bytes.NewReader(file))
+	image, _, err := image.Decode(bytes.NewBuffer(file))
+	if err != nil {
+		logs.Save("commons", "ResizeImage", "Error decoding the file", logs.Error, err)
+		return err
+	}
+	reader.Close()
+
+	newImage := resize.Resize(width, height, image, resize.Lanczos3)
+
+	//delete the origina image
+	err = os.Remove(path)
+	if err != nil {
+		logs.Save("commons", "ResizeImage", "Error deleting the old file", logs.Error, err)
+		return err
+	}
+
+	writer, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0777)
+	if err != nil {
+		logs.Save("commons", "ResizeImage", "Error witing the new file", logs.Error, err)
+		return err
+	}
+	err = jpeg.Encode(writer, newImage, nil)
+	if err != nil {
+		logs.Save("commons", "ResizeImage", "Error encoding the file", logs.Error, err)
+		return err
+	}
+	return nil
 }

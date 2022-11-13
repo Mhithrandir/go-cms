@@ -1,20 +1,18 @@
 package user
 
 import (
-	"cms/commons"
-	"cms/logs"
 	"database/sql"
 	"errors"
+	"go-desk/commons"
+	"go-desk/customrequest"
+	"go-desk/logs"
+	"strconv"
 	"time"
 )
 
 //CheckLogin check the credentials in the database
 func (u User) CheckLogin() ([]User, error) {
-	sql, err := DB.GetQuery("UserPrinc")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql+" WHERE Users.Username = ? AND Users.Password = ?", u.Username, commons.CryptPassword(u.Password))
+	reader, err := DB.Reader("CheckLogin", u.Username, commons.CryptPassword(u.Password))
 	if err != nil {
 		return nil, err
 	}
@@ -40,11 +38,7 @@ func (u User) PasswordExpired() bool {
 
 //GetUserFromCodeResetPassword get the user that has the specified code reset password
 func GetUserFromCodeResetPassword(code string) ([]User, error) {
-	sql, err := DB.GetQuery("UserPrinc")
-	if err != nil {
-		return nil, err
-	}
-	reader, err := DB.Reader(sql+" WHERE Users.coderesetpassword = ?", code)
+	reader, err := DB.Reader("GetUserFromCodeResetPassword", code)
 	if err != nil {
 		return nil, err
 	}
@@ -59,11 +53,22 @@ func GetUserFromCodeResetPassword(code string) ([]User, error) {
 
 //GetUsers return an array of users
 func GetUsers(start, end int) ([]User, error) {
-	sql, err := DB.GetQuery("UserPrinc")
+	reader, err := DB.Reader("GetUsers", start, end)
 	if err != nil {
 		return nil, err
 	}
-	reader, err := DB.Reader(sql+" LIMIT ?, ?", start, end)
+	defer reader.Close()
+	results, err := read(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
+
+//GetUsers return an array of users
+func GetUsersByUsertype(usertype string) ([]User, error) {
+	reader, err := DB.Reader("GetUsersByUsertype", usertype)
 	if err != nil {
 		return nil, err
 	}
@@ -78,11 +83,7 @@ func GetUsers(start, end int) ([]User, error) {
 
 //GetUserByID return a user from id
 func GetUserByID(id int64) (User, error) {
-	sql, err := DB.GetQuery("UserPrinc")
-	if err != nil {
-		return User{}, err
-	}
-	reader, err := DB.Reader(sql+" WHERE Users.ID = ?", id)
+	reader, err := DB.Reader("GetUserByID", id)
 	if err != nil {
 		return User{}, err
 	}
@@ -92,7 +93,7 @@ func GetUserByID(id int64) (User, error) {
 		return User{}, err
 	}
 	if len(results) == 0 {
-		return User{}, errors.New("No user found for the ID: " + string(id))
+		return User{}, errors.New("No user found for the ID: " + strconv.Itoa(int(id)))
 	}
 
 	return results[0], nil
@@ -100,11 +101,7 @@ func GetUserByID(id int64) (User, error) {
 
 //CheckUsername verifyu if username already exist
 func CheckUsername(username string) (bool, error) {
-	sql, err := DB.GetQuery("UserPrinc")
-	if err != nil {
-		return false, err
-	}
-	reader, err := DB.Reader(sql+" WHERE Users.Username = ?", username)
+	reader, err := DB.Reader("CheckUsername", username)
 	if err != nil {
 		return false, err
 	}
@@ -119,11 +116,7 @@ func CheckUsername(username string) (bool, error) {
 
 //CountUser count all records in the table
 func CountUser() (int64, error) {
-	sql, err := DB.GetQuery("CountUser")
-	if err != nil {
-		return -1, err
-	}
-	reader, err := DB.Reader(sql)
+	reader, err := DB.Reader("CountUser")
 	defer reader.Close()
 	reader.Next()
 	var count int64
@@ -138,6 +131,24 @@ func CountUser() (int64, error) {
 //Exist check if user exist
 func (u User) Exist() (bool, error) {
 	return CheckUsername(u.Username)
+}
+
+//Create a login token
+func CreateToken(user User, request customrequest.CustomRequest) (commons.AuthorizationToken, error) {
+	tokenString, err := commons.CreateJwsToken(user.Username, user.ID, user.IDUserType, request)
+	if err != nil {
+		return commons.AuthorizationToken{}, err
+	}
+
+	expiration := time.Now()
+	expiration = expiration.Add(time.Duration(request.Config.TokenDuration * 60000000000))
+
+	return commons.AuthorizationToken{
+		Name:    "Authorization",
+		Value:   tokenString,
+		Expires: expiration,
+	}, nil
+
 }
 
 //read Read all the record from the query

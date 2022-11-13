@@ -1,14 +1,16 @@
 package customrequest
 
 import (
-	"cms/config"
-	"cms/database"
-	"cms/logs"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"go-desk/config"
+	"go-desk/database"
+	"go-desk/logs"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -38,26 +40,16 @@ func New(w http.ResponseWriter, r *http.Request, db *database.Database) (CustomR
 	if vett[0] == "api" {
 		//if first parameter is api it means to invoke the api part of the code
 		a.Package = vett[1]
-		a.IsApi = true
+		a.Type = "Api"
 		if len(vett) > 2 {
 			a.Func = vett[2]
 		} else {
 			//if there is no func it an error
 			return a, errors.New("The url is malformed: no func specified")
 		}
-	} else if vett[0] == "be" {
-		//if first parameter is be it means to invoke the backend (front end and backend can have same func)
-		a.Package = "page"
-		if len(vett) > 1 && vett[1] != "" {
-			a.Func = vett[1]
-		} else {
-			//if there is no func returns the homepage
-			a.Func = "home"
-		}
-		a.IsBakcEnd = true
 	} else {
 		//if first parameter is not be nor api it means to invoke the front end
-		a.Package = "page"
+		a.Package = "Page"
 		if vett[0] != "" {
 			a.Func = vett[0]
 		} else {
@@ -110,15 +102,7 @@ func (a CustomRequest) CheckPermission() (CustomRequest, error) {
 		return a, err
 	}
 
-	_type := "fe"
-	if a.IsApi {
-		_type = "api"
-	}
-	if a.IsBakcEnd {
-		_type = "be"
-	}
-
-	results, err := a.DB.ScanTable(sql, a.Claims.IDUserType, a.Package, a.Func, _type, a.Request.Method)
+	results, err := a.DB.ScanTable(sql, a.Claims.IDUserType, a.Package, a.Func, a.Type, a.Request.Method)
 	if err != nil {
 		return a, err
 	}
@@ -139,7 +123,23 @@ func (a CustomRequest) VerifyJwsToken() (CustomRequest, error) {
 		} else {
 			//get cookie for guest
 			a.Claims.IDUser = -1
-			a.Claims.IDUserType = 99
+			// Cyrcular reference is not allowed, so I have to query the usertype table
+			sql, err := a.DB.GetQuery("GetUserTypeFromDescription")
+			if err != nil {
+				return a, err
+			}
+			reader, err := a.DB.ScanTable(sql, "Guest")
+			if err != nil {
+				return a, err
+			}
+			if len(reader) > 0 {
+				res, err := strconv.Atoi(fmt.Sprintf("%d", reader[0]["ID"]))
+				if err != nil {
+					return a, err
+				}
+				a.Claims.IDUserType = int64(res)
+			}
+			// a.Claims.IDUserType = 99
 			a.Claims.Username = "Guest"
 			a.Claims.IsValid = true
 			return a, nil

@@ -1,6 +1,2 @@
-
-log_05-12-2021.json
-log_06-12-2021.json
-log_23-11-2021.json
-log_27-11-2021.json
-node_modules
+__debug_bin.exe
+log_*.json

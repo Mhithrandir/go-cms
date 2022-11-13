@@ -17,9 +17,3 @@ type AuthorizationToken struct {
 	Value   string `json:"Value"`
 	Expires time.Time
 }
-
-type Package struct {
-	Data      interface{} `json:"Data"`
-	Page      int         `json:"Page"`
-	PageCount int         `json:"PageCount"`
-}

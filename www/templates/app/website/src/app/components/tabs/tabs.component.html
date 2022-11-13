@@ -1,6 +1,0 @@
-<ul class="menu">
-    <li *ngFor="let tab of tabs" (click)="selectTab(tab)">
-        <span [ngClass]="{ 'menu-header': true, 'active': tab.active }">{{ tab.title }}</span>
-    </li>
-</ul>
-<ng-content></ng-content>

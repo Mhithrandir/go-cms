@@ -1,11 +1,11 @@
 package route
 
 import (
-	"cms/commons"
-	"cms/customrequest"
-	"cms/errorpages"
-	"cms/logs"
-	"cms/usertype"
+	"go-desk/customrequest"
+
+	"go-desk/logs"
+	"go-desk/responses"
+	"go-desk/usertype"
 	"math"
 	"strconv"
 )
@@ -26,7 +26,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	case "check":
 		Check(request)
 	default:
-		errorpages.NotFound(request)
+		responses.NotFound(request)
 	}
 }
 
@@ -37,28 +37,28 @@ func Add(request customrequest.CustomRequest) {
 	var routeJSON Route
 	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := routeJSON.Exist()
 	if exist && err == nil {
-		errorpages.BadRequest(request, "Route already exist")
+		responses.BadRequest(request, "Route already exist")
 		return
 	} else if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
 	routeJSON.IDInsertUser = request.Claims.IDUser
 	routeJSON.IDEditUser = request.Claims.IDUser
-	for i, _ := range routeJSON.Permissions {
+	for i := range routeJSON.Permissions {
 		routeJSON.Permissions[i].IDInsertUser = request.Claims.IDUser
 		routeJSON.Permissions[i].IDEditUser = request.Claims.IDUser
 		usertype.DB = DB
 		u, err := usertype.GetUserTypeFromDescription(routeJSON.Permissions[i].UserType.Description)
 		if err != nil {
-			errorpages.InternalServerError(request, err.Error())
+			responses.InternalServerError(request, err.Error())
 			return
 		}
 		routeJSON.Permissions[i].IDUserType = u.ID
@@ -66,64 +66,62 @@ func Add(request customrequest.CustomRequest) {
 
 	err = routeJSON.Add()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }
 
 func GetRoutesFiltered(request customrequest.CustomRequest) {
 	DB = request.DB
 
-	_package, ok := request.Parameters["package"]
+	filter, ok := request.Parameters["filter"]
 	if !ok {
-		_package = ""
-	}
-	_func, ok := request.Parameters["func"]
-	if !ok {
-		_func = ""
-	}
-	_type, ok := request.Parameters["type"]
-	if !ok {
-		_type = ""
+		filter = ""
 	}
 
-	result, err := LoadRoutesFiltered(_package, _func, _type)
+	result, err := LoadRoutesFiltered(filter)
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
-	commons.Ok(request, result, 0, 0)
+	responses.Ok(request, result, 0, 0)
 }
 
 //GetRoutes returns all routes configured in the database
 func GetRoutes(request customrequest.CustomRequest) {
 	DB = request.DB
 
-	page, err := strconv.Atoi(request.Parameters["page"])
-	if err != nil {
-		logs.Save("routes", "GetRoutes", "Parameter page not valid", logs.Error, err.Error())
-		errorpages.BadRequest(request, err.Error())
-		return
+	var page int
+	var err error
+	if val, ok := request.Parameters["page"]; ok {
+		page, err = strconv.Atoi(val)
+		if err != nil {
+			logs.Save("routes", "GetRoutes", "Parameter page not valid", logs.Error, err.Error())
+			responses.BadRequest(request, err.Error())
+			return
+		}
+	} else {
+		page = 0
 	}
 
 	result, err := LoadRoutes(page*request.Config.Pagination, request.Config.Pagination)
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
 	count, err := CountRoute()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 	countFloat := float64(count)
 	paginationFloat := float64(request.Config.Pagination)
 	pageNumber := int(math.Ceil(countFloat / paginationFloat))
-	commons.Ok(request, result, page, int(pageNumber))
+	responses.Ok(request, result, page, int(pageNumber))
 }
 
 //Delete delete a route from database
@@ -133,16 +131,16 @@ func Delete(request customrequest.CustomRequest) {
 	id, err := strconv.Atoi(request.Parameters["ID"])
 	if err != nil {
 		logs.Save("routes", "DeleteRoute", "Parameter id not valid", logs.Error, err.Error())
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	err = DeleteRecord(int64(id))
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }
 
 //Update a route in the database
@@ -152,25 +150,25 @@ func Update(request customrequest.CustomRequest) {
 	var routeJSON Route
 	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := routeJSON.Exist()
 	if !exist && err != nil {
-		errorpages.BadRequest(request, "Route not exist")
+		responses.BadRequest(request, "Route not exist")
 		return
 	} else if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	for i, _ := range routeJSON.Permissions {
+	for i := range routeJSON.Permissions {
 		routeJSON.Permissions[i].IDInsertUser = request.Claims.IDUser
 		routeJSON.Permissions[i].IDEditUser = request.Claims.IDUser
 		usertype.DB = DB
 		u, err := usertype.GetUserTypeFromDescription(routeJSON.Permissions[i].Description)
 		if err != nil {
-			errorpages.InternalServerError(request, err.Error())
+			responses.InternalServerError(request, err.Error())
 			return
 		}
 		routeJSON.Permissions[i].IDUserType = u.ID
@@ -178,10 +176,10 @@ func Update(request customrequest.CustomRequest) {
 
 	err = routeJSON.Update()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }
 
 //Check check if user has permission to open this route
@@ -191,15 +189,15 @@ func Check(request customrequest.CustomRequest) {
 	var routeJSON Route
 	err := request.ParserBodyRequest(&routeJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	permission, err := routeJSON.CheckRoute(request.Claims.IDUserType)
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
-	commons.Ok(request, permission, 0, 0)
+	responses.Ok(request, permission, 0, 0)
 }

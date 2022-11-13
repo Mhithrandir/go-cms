@@ -1,9 +1,8 @@
 package menu
 
 import (
-	"cms/database"
-	"cms/route"
-	"cms/usertype"
+	"go-desk/database"
+	"go-desk/route"
 )
 
 //DB variables to handle database
@@ -11,23 +10,13 @@ var DB *database.Database
 
 //Menu struct for the menu table
 type Menu struct {
-	MenuName  string `json:"MenuName"`
-	Name      string `json:"Name"`
-	Parent    int64  `json:"Parent"`
-	IDRoute   int64  `json:"IDRoute"`
-	MenuOrder int64  `json:"MenuOrder"`
-	Childrens []Menu `json:"Childrens"`
-	// Permissions []MenuPermission `json:"Permissions"`
+	MenuName   string      `json:"MenuName"`
+	Name       string      `json:"Name"`
+	Parent     int64       `json:"Parent"`
+	IDRoute    int64       `json:"IDRoute"`
+	Order      int64       `json:"Order"`
+	Childrens  []Menu      `json:"Childrens"`
 	Route      route.Route `json:"Route"`
 	IsExpanded bool        `json:"IsExpanded"`
-	database.BaseTable
-}
-
-//MenuPermission struct for the menupermission table
-type MenuPermission struct {
-	IDMenu            int64 `json:"IDMenu"`
-	IDUserType        int64 `json:"IDUserType"`
-	Enabled           bool  `json:"Enabled"`
-	usertype.UserType `json:"UserType"`
 	database.BaseTable
 }

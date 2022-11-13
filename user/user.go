@@ -1,13 +1,13 @@
 package user
 
 import (
-	"cms/commons"
-	"cms/customrequest"
-	"cms/errorpages"
-	"cms/logs"
+	"go-desk/commons"
+	"go-desk/customrequest"
+	"go-desk/logs"
+	"go-desk/responses"
+	"go-desk/usertype"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/google/uuid"
 )
@@ -21,8 +21,12 @@ func ParseRoute(request customrequest.CustomRequest) {
 		Register(request)
 	case "verifyuser":
 		VerifyUser(request)
+	case "verifyusercode":
+		VerifyUserCode(request)
 	case "loadusers":
 		LoadUsers(request)
+	case "getusersbyusertype":
+		LoadUsersByUsertype(request)
 	case "update":
 		Update(request)
 	case "exist":
@@ -30,7 +34,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	case "reset":
 		ResetPassword(request)
 	default:
-		errorpages.NotFound(request)
+		responses.NotFound(request)
 	}
 }
 
@@ -41,47 +45,39 @@ func Login(request customrequest.CustomRequest) {
 	var userJSON User
 	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	user, err := userJSON.CheckLogin()
 
 	if user == nil && err == nil {
-		errorpages.Unauthorized(request)
+		responses.Unauthorized(request)
 		return
 	} else if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-
-	tokenString, err := commons.CreateJwsToken(user[0].Username, user[0].ID, user[0].IDUserType, request)
-	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
-		return
-	}
-
-	expiration := time.Now()
-	expiration = expiration.Add(time.Duration(request.Config.TokenDuration * 60000000000))
 
 	if !user[0].PasswordExpired() {
+		token, err := CreateToken(user[0], request)
+		if err != nil {
+			responses.InternalServerError(request, err.Error())
+			return
+		}
 		user[0].Password = ""
 		user[0].SetLoggedIn()
-		commons.Ok(request, &commons.AuthorizationToken{
-			Name:    "Authorization",
-			Value:   tokenString,
-			Expires: expiration,
-		}, 0, 0)
+		responses.Ok(request, &token, 0, 0)
 	} else {
 		code := uuid.Must(uuid.NewRandom()).String()
 		user[0].CodeResetPassword = code
 		err = user[0].Update()
 		if err != nil {
-			errorpages.BadRequest(request, err.Error())
+			responses.BadRequest(request, err.Error())
 			return
 		}
 		logs.Save("user", "Login", "Login with expired password", logs.Warning, user[0])
-		commons.PasswordExpired(request, "{Error: \"Expired password\", Code: "+code+"}")
+		responses.PasswordExpired(request, "{ \"Error\": \"Expired password\", \"Code\": \""+code+"\" }")
 	}
 }
 
@@ -92,23 +88,26 @@ func Register(request customrequest.CustomRequest) {
 	var userJSON User
 	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		logs.Save("user", "Register", "Errore parsing body", logs.Error, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := userJSON.Exist()
 	if exist && err == nil {
-		errorpages.BadRequest(request, "User already exist")
+		logs.Save("user", "Register", "User already exist", logs.Error, err.Error())
+		responses.BadRequest(request, "User already exist")
 		return
 	} else if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
 	verifiedPassword := commons.VerifyPassword(userJSON.Password, "")
 
 	if verifiedPassword != "" {
-		errorpages.BadRequest(request, "{Error: "+verifiedPassword+", Code: ''")
+		logs.Save("user", "Register", verifiedPassword, logs.Error, err.Error())
+		responses.BadRequest(request, "{Error: "+verifiedPassword+", Code: ''")
 		return
 	}
 
@@ -117,7 +116,7 @@ func Register(request customrequest.CustomRequest) {
 	userJSON.PasswordDuration = request.Config.PasswordDuration
 
 	body := strings.Replace(request.Config.RegistrationBody, "$username", userJSON.Username, -1)
-	body = strings.Replace(body, "$registrazione", request.Config.LinkVerifyRegistration+userJSON.CodeResetPassword, -1)
+	body = strings.Replace(body, "$registrationCode", request.Config.LinkVerifyRegistration+userJSON.CodeResetPassword, -1)
 	headers := make(map[string]string)
 	headers["From"] = request.Config.NoreplyMailAddress
 	headers["To"] = userJSON.Username
@@ -130,47 +129,100 @@ func Register(request customrequest.CustomRequest) {
 	}
 	message += "\r\n" + body
 
-	// sent, err := commons.SendMail(
-	// 	mail.Address{"NoReply", _config.NoreplyMailAddress},
-	// 	userJSON.Username,
-	// 	_config.SubjectRegistration,
-	// 	message)
-	// if err != nil || !sent {
-	// 	errorpages.InternalServerError(request, err.Error())
-	// 	return
-	// }
+	sent, err := commons.SendMail(
+		request.Config.NoreplyMailAddress,
+		userJSON.Username,
+		request.Config.SubjectRegistration,
+		message, request)
+	if err != nil || !sent {
+		responses.InternalServerError(request, err.Error())
+		return
+	}
+
+	//For default a new user is just a User
+	usertype.DB = DB
+	userType, err := usertype.GetUserTypeFromDescription("User")
+	if err != nil {
+		responses.InternalServerError(request, err.Error())
+		return
+	}
+	userJSON.IDUserType = userType.ID
 
 	//if everything is ok add the user in the database
 	err = userJSON.Add()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }
 
 //VerifyUser verify the mail of a user
 func VerifyUser(request customrequest.CustomRequest) {
 	DB = request.DB
 
-	if !request.Claims.IsAuthorized {
-		errorpages.Unauthorized(request)
-	}
-
-	user, err := GetUserFromCodeResetPassword(request.Parameters["code"])
+	var userJSON User
+	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
-		errorpages.BadRequest(request, "User not found")
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
-	user[0].CodeResetPassword = ""
-	err = user[0].Update()
-	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+	exist, err := userJSON.Exist()
+	if !exist && err == nil {
+		responses.BadRequest(request, "User doesn't exist")
+		return
+	} else if err != nil {
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
-	commons.Ok(request, true, 0, 0)
+	userReset, err := GetUserFromCodeResetPassword(userJSON.CodeResetPassword)
+	if err != nil {
+		responses.InternalServerError(request, err.Error())
+		return
+	} else if userJSON.CodeResetPassword == "" || len(userReset) == 0 || userJSON.Username != userReset[0].Username {
+		responses.BadRequest(request, "Code reset password is invalid")
+		return
+	}
+	userReset[0].PasswordDuration = request.Config.PasswordDuration
+	err = userReset[0].Update()
+	if err != nil {
+		responses.InternalServerError(request, err.Error())
+		return
+	}
+
+	token, err := CreateToken(userReset[0], request)
+	if err != nil {
+		responses.InternalServerError(request, err.Error())
+		return
+	}
+
+	responses.Ok(request, &token, 0, 0)
+}
+
+//Verify the user code when user click on email
+func VerifyUserCode(request customrequest.CustomRequest) {
+	DB = request.DB
+
+	code, ok := request.Parameters["code"]
+	if !ok {
+		responses.BadRequest(request, "Code not valid")
+		return
+	}
+	fountUser, err := GetUserFromCodeResetPassword(code)
+	if err != nil || len(fountUser) == 0 {
+		responses.BadRequest(request, "Code not valid")
+		return
+	}
+	fountUser[0].CodeResetPassword = ""
+	err = fountUser[0].Update()
+	if err != nil {
+		responses.InternalServerError(request, err.Error())
+		return
+	}
+
+	responses.Ok(request, true, 0, 0)
 }
 
 //Reset the password in the database for a specific user
@@ -180,16 +232,16 @@ func ResetPassword(request customrequest.CustomRequest) {
 	var userJSON User
 	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := userJSON.Exist()
 	if !exist && err == nil {
-		errorpages.BadRequest(request, "User not exist")
+		responses.BadRequest(request, "User doesn't exist")
 		return
 	} else if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
@@ -223,10 +275,10 @@ func ResetPassword(request customrequest.CustomRequest) {
 	//if everything is ok update the user in the database
 	err = userJSON.Update()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }
 
 //CheckUserExist verify the user exist
@@ -236,17 +288,17 @@ func CheckUserExist(request customrequest.CustomRequest) {
 	var userJSON User
 	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	results, err := userJSON.Exist()
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
-	commons.Ok(request, results, 0, 0)
+	responses.Ok(request, results, 0, 0)
 }
 
 //LoadUsers load users
@@ -259,7 +311,7 @@ func LoadUsers(request customrequest.CustomRequest) {
 		page, err = strconv.Atoi(val)
 		if err != nil {
 			logs.Save("users", "LoadUsers", "Parameter page not valid", logs.Error, err.Error())
-			errorpages.BadRequest(request, err.Error())
+			responses.BadRequest(request, err.Error())
 			return
 		}
 	} else {
@@ -267,17 +319,31 @@ func LoadUsers(request customrequest.CustomRequest) {
 	}
 	result, err := GetUsers(page, request.Config.Pagination)
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
 	count, err := CountUser()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
-	commons.Ok(request, result, page, int(count)/request.Config.Pagination)
+	responses.Ok(request, result, page, int(count)/request.Config.Pagination)
+}
+
+func LoadUsersByUsertype(request customrequest.CustomRequest) {
+	DB = request.DB
+
+	usertype, _ := request.Parameters["usertype"]
+
+	result, err := GetUsersByUsertype(usertype)
+	if err != nil {
+		responses.InternalServerError(request, err.Error())
+		return
+	}
+
+	responses.Ok(request, result, 0, 0)
 }
 
 //Update update user information
@@ -287,24 +353,25 @@ func Update(request customrequest.CustomRequest) {
 	var userJSON User
 	err := request.ParserBodyRequest(&userJSON)
 	if err != nil {
-		errorpages.BadRequest(request, err.Error())
+		responses.BadRequest(request, err.Error())
 		return
 	}
 
 	exist, err := userJSON.Exist()
 	if !exist && err == nil {
-		errorpages.BadRequest(request, "User not exist")
+		responses.BadRequest(request, "User not exist")
 		return
 	} else if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
+	userJSON.Password = commons.CryptPassword(userJSON.Password)
 	err = userJSON.Update()
 	if err != nil {
-		errorpages.InternalServerError(request, err.Error())
+		responses.InternalServerError(request, err.Error())
 		return
 	}
 
-	commons.Ok(request, true, 0, 0)
+	responses.Ok(request, true, 0, 0)
 }

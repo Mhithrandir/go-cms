@@ -1,9 +1,0 @@
-<form [formGroup]="frmGroup" class="grid-1" method="post" (ngSubmit)="onSubmit()">
-    <app-form-control
-        [label]="'* Usertype Name'"
-        [controlName]="'usertype'"
-        [frmGroup]="frmGroup"></app-form-control>
-    <label class="unselectable mt-1">* Mandatory fields</label>
-    <label class="unselectable mt-1 error-message" *ngIf="error != '' && error != null">{{ error }}</label>
-    <button type="submit" class="btn unselectable override-dialog" [disabled]="frmGroup.invalid">Save</button>
-</form>
