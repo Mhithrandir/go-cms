@@ -28,25 +28,6 @@ func main() {
 		log.Panic(err)
 	}
 
-	// if _, err := os.Stat(_config.Database.Dns); err == nil {
-	// 	os.Remove(_config.Database.Dns)
-	// }
-	//Open the database
-	db, err = database.New(_config.Database.Driver, _config.Database.Dns)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	if _config.InstallationPhase == 0 {
-		err = InitializeDatabase()
-		if err != nil {
-			logs.Save("main", "InitializeDatabase", err.Error(), logs.Warning, err)
-			log.Panic(err)
-		}
-		_config.InstallationPhase = 99
-		_config.Save()
-	}
-
 	//serving style css
 	style := http.FileServer(http.Dir("./www/styles"))
 	http.Handle("/styles/", http.StripPrefix("/styles", style))
@@ -58,14 +39,52 @@ func main() {
 	http.Handle("/img/", http.StripPrefix("/img", img))
 	http.HandleFunc("/favicon.ico", faviconHandler)
 
-	//handles all calling url
-	http.HandleFunc("/", handler)
+	if _config.InstallationPhase == 0 {
+		//handles all calling url
+		http.HandleFunc("/", handlerInstallation)
+	} else {
+		//Open the database
+		db, err = database.New(_config.Database.Driver, _config.Database.Dns)
+		if err != nil {
+			log.Panic(err)
+		}
+
+		//handles all calling url
+		http.HandleFunc("/", handler)
+	}
+
+	// if _, err := os.Stat(_config.Database.Dns); err == nil {
+	// 	os.Remove(_config.Database.Dns)
+	// }
+
+	// if _config.InstallationPhase == 0 {
+	// 	err = InitializeDatabase()
+	// 	if err != nil {
+	// 		logs.Save("main", "InitializeDatabase", err.Error(), logs.Warning, err)
+	// 		log.Panic(err)
+	// 	}
+	// 	_config.InstallationPhase = 99
+	// 	_config.Save()
+	// }
 
 	log.Fatal(http.ListenAndServe(_config.Port, nil))
 }
 
 func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./www/img/favicon.ico")
+}
+
+func handlerInstallation(w http.ResponseWriter, r *http.Request) {
+	// request, err := customrequest.New(w, r, nil)
+	// if err != nil {
+	// 	responses.NotAccettable(request, err.Error())
+	// 	return
+	// }
+	// if request.GetMethod() == "OPTIONS" {
+	// 	responses.Ok(request, true, 0, 0)
+	// 	return
+	// }
+	// component.ParseRoute(request)
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -92,7 +111,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	case "usertype":
 		usertype.ParseRoute(request)
 	}
-
 }
 
 func InitializeDatabase() error {
@@ -197,6 +215,23 @@ func InitializeDatabase() error {
 		fields = append(fields, database.Field{Name: "Command", Type: "TEXT"})
 		fields = append(fields, standardFields...)
 		err = db.CreateTable("StoredQueries", fields)
+		if err != nil {
+			return err
+		}
+	}
+
+	exist, err = db.Exist("Components")
+	if err != nil {
+		return err
+	}
+	if !exist {
+		fields = nil
+		fields = append(fields, database.Field{Name: "Name", Type: "TEXT"})
+		fields = append(fields, database.Field{Name: "Path", Type: "TEXT"})
+		fields = append(fields, database.Field{Name: "IDRoute", Type: "INTEGER"})
+		fields = append(fields, database.Field{Name: "Query", Type: "TEXT"})
+		fields = append(fields, standardFields...)
+		err = db.CreateTable("Components", fields)
 		if err != nil {
 			return err
 		}
@@ -394,7 +429,7 @@ func InitializeDatabase() error {
 	if err != nil {
 		return err
 	}
-	err = db.InsertStoredQuery("UpdateOrder", "UPDATE Menus SET MenuOrder = ? WHERE ID = ?")
+	err = db.InsertStoredQuery("UpdateMenuOrder", "UPDATE Menus SET MenuOrder = ? WHERE ID = ?")
 	if err != nil {
 		return err
 	}
@@ -467,7 +502,7 @@ func InitializeDatabase() error {
 
 	// Menu
 
-	r.Package = ""
+	r.Package = "page"
 	r.Func = "menus"
 	r.Type = route.Page
 	r.Method = route.Null
@@ -600,7 +635,7 @@ func InitializeDatabase() error {
 	r.Package = "menu"
 	r.Func = "update"
 	r.Type = route.Api
-	r.Method = route.UPDATE
+	r.Method = route.POST
 	err = r.Add()
 	if err != nil {
 		return err
@@ -621,7 +656,7 @@ func InitializeDatabase() error {
 
 	// Route
 
-	r.Package = ""
+	r.Package = "page"
 	r.Func = "routes"
 	r.Type = route.Page
 	r.Method = route.Null
@@ -734,7 +769,7 @@ func InitializeDatabase() error {
 	r.Package = "route"
 	r.Func = "update"
 	r.Type = route.Api
-	r.Method = route.UPDATE
+	r.Method = route.POST
 	err = r.Add()
 	if err != nil {
 		return err
@@ -775,7 +810,7 @@ func InitializeDatabase() error {
 
 	// User
 
-	r.Package = ""
+	r.Package = "page"
 	r.Func = "users"
 	r.Type = route.Page
 	r.Method = route.Null
@@ -797,7 +832,7 @@ func InitializeDatabase() error {
 		return err
 	}
 
-	r.Package = ""
+	r.Package = "page"
 	r.Func = "login"
 	r.Type = route.Page
 	r.Method = route.Null
@@ -841,7 +876,7 @@ func InitializeDatabase() error {
 		return err
 	}
 
-	r.Package = ""
+	r.Package = "page"
 	r.Type = route.Page
 	r.Func = "register"
 	r.Method = route.Null
@@ -952,7 +987,7 @@ func InitializeDatabase() error {
 	r.Package = "user"
 	r.Func = "update"
 	r.Type = route.Api
-	r.Method = route.UPDATE
+	r.Method = route.POST
 	err = r.Add()
 	if err != nil {
 		return err
@@ -1039,7 +1074,7 @@ func InitializeDatabase() error {
 
 	// UserType
 
-	r.Package = ""
+	r.Package = "page"
 	r.Func = "usertypes"
 	r.Type = route.Page
 	r.Method = route.Null
@@ -1150,7 +1185,7 @@ func InitializeDatabase() error {
 	}
 
 	// Special route to handle homepage
-	r.Package = ""
+	r.Package = "page"
 	r.Func = "home"
 	r.Type = route.Page
 	r.Method = route.Null
@@ -1170,7 +1205,7 @@ func InitializeDatabase() error {
 		return err
 	}
 
-	r.Package = ""
+	r.Package = "page"
 	r.Func = "logout"
 	r.Type = route.Page
 	r.Method = route.Null
@@ -1192,6 +1227,28 @@ func InitializeDatabase() error {
 		return err
 	}
 
+	r.Package = "page"
+	r.Type = route.Page
+	r.Func = "page-builder"
+	r.Method = route.Null
+	err = r.Add()
+	if err != nil {
+		return err
+	}
+	r, err = route.GetRoute(r.Package, r.Func, r.Type, r.Method)
+	if err != nil {
+		return err
+	}
+	for i := 0; i < len(r.Permissions); i++ {
+		if r.Permissions[i].UserType.Description == "Admin" {
+			r.Permissions[i].Enabled = true
+		}
+	}
+	err = r.Update()
+	if err != nil {
+		return err
+	}
+
 	// #endregion
 
 	// #region Common Menu
@@ -1201,7 +1258,7 @@ func InitializeDatabase() error {
 	m.MenuName = "MainMenu"
 	m.Name = "Login"
 	m.Parent = -1
-	r, err = route.GetRoute("", "login", route.Page, route.Null)
+	r, err = route.GetRoute("page", "login", route.Page, route.Null)
 	if err != nil {
 		return err
 	}
@@ -1213,7 +1270,7 @@ func InitializeDatabase() error {
 	}
 
 	m.Name = "Register"
-	r, err = route.GetRoute("", "register", route.Page, route.Null)
+	r, err = route.GetRoute("page", "register", route.Page, route.Null)
 	if err != nil {
 		return err
 	}
@@ -1225,7 +1282,7 @@ func InitializeDatabase() error {
 	}
 
 	m.Name = "Home"
-	r, err = route.GetRoute("", "home", route.Page, route.Null)
+	r, err = route.GetRoute("page", "home", route.Page, route.Null)
 	if err != nil {
 		return err
 	}
@@ -1267,7 +1324,7 @@ func InitializeDatabase() error {
 	}
 
 	m.Name = "UserTypes"
-	r, err = route.GetRoute("", "usertypes", route.Page, route.Null)
+	r, err = route.GetRoute("page", "usertypes", route.Page, route.Null)
 	if err != nil {
 		return err
 	}
@@ -1280,7 +1337,7 @@ func InitializeDatabase() error {
 	}
 
 	m.Name = "Routes"
-	r, err = route.GetRoute("", "routes", route.Page, route.Null)
+	r, err = route.GetRoute("page", "routes", route.Page, route.Null)
 	if err != nil {
 		return err
 	}
@@ -1293,7 +1350,7 @@ func InitializeDatabase() error {
 	}
 
 	m.Name = "Menus"
-	r, err = route.GetRoute("", "menus", route.Page, route.Null)
+	r, err = route.GetRoute("page", "menus", route.Page, route.Null)
 	if err != nil {
 		return err
 	}
@@ -1306,7 +1363,7 @@ func InitializeDatabase() error {
 	}
 
 	m.Name = "Logout"
-	r, err = route.GetRoute("", "logout", route.Page, route.Null)
+	r, err = route.GetRoute("page", "logout", route.Page, route.Null)
 	if err != nil {
 		return err
 	}

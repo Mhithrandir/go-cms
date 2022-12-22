@@ -80,7 +80,12 @@ func CountMenu() (int64, error) {
 
 //Exist check if a menupermission records alreasdy exist
 func (m Menu) Exist() (bool, error) {
-	result, err := DB.ScanTable("MenuExist", m.MenuName, m.Name)
+	sql, err := DB.GetQuery("MenuExist")
+	if err != nil {
+		logs.Save("menu", "Exist", "Error getting the query", logs.Error, err.Error())
+		return false, err
+	}
+	result, err := DB.ScanTable(sql, m.MenuName, m.Name)
 	if err != nil {
 		logs.Save("menu", "Exist", "Error selecting", logs.Error, err.Error())
 		return false, err

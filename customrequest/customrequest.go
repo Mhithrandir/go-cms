@@ -72,11 +72,15 @@ func New(w http.ResponseWriter, r *http.Request, db *database.Database) (CustomR
 		log.Fatal("Error loading config: ", err)
 	}
 
-	//Check the authorization if exist
-	a, err = a.CheckPermission()
-	if err != nil {
-		return a, err
+	// if the website is not in installation it must check for permission
+	if a.Config.InstallationPhase == 99 {
+		//Check the authorization if exist
+		a, err = a.CheckPermission()
+		if err != nil {
+			return a, err
+		}
 	}
+
 	return a, nil
 }
 
