@@ -3,7 +3,7 @@ package database
 import (
 	"context"
 	"database/sql"
-	"go-desk/logs"
+	"go-cms/logs"
 	"log"
 	"os"
 	"strconv"
@@ -14,7 +14,7 @@ import (
 var db Database
 var _driver, _dns string
 
-//New instatiate new connection to the database
+// New instatiate new connection to the database
 func New(driver, dns string) (Database, error) {
 	var err error
 	_driver = driver
@@ -34,7 +34,7 @@ func New(driver, dns string) (Database, error) {
 	return db, nil
 }
 
-//Query execute a write only query
+// Query execute a write only query
 func (db Database) Query(name string, args ...interface{}) error {
 	sql, err := db.GetQuery(name)
 	if err != nil {
@@ -43,7 +43,7 @@ func (db Database) Query(name string, args ...interface{}) error {
 	return db.QueryCmd(sql, args...)
 }
 
-//Query execute a write only query
+// Query execute a write only query
 func (db Database) QueryCmd(sql string, args ...interface{}) error {
 	ctx := context.Background()
 	_, err := db.Conn.ExecContext(ctx, sql, args...)
@@ -55,7 +55,7 @@ func (db Database) QueryCmd(sql string, args ...interface{}) error {
 	return nil
 }
 
-//Reader func to execute a query in the database
+// Reader func to execute a query in the database
 func (db Database) Reader(name string, args ...interface{}) (*sql.Rows, error) {
 	sql, err := db.GetQuery(name)
 	if err != nil {
@@ -64,7 +64,7 @@ func (db Database) Reader(name string, args ...interface{}) (*sql.Rows, error) {
 	return db.ReaderCmd(sql, args...)
 }
 
-//Reader func to execute a query in the database
+// Reader func to execute a query in the database
 func (db Database) ReaderCmd(sqlCommand string, args ...interface{}) (*sql.Rows, error) {
 	var err error
 	ctx := context.Background()
@@ -78,7 +78,7 @@ func (db Database) ReaderCmd(sqlCommand string, args ...interface{}) (*sql.Rows,
 	return rows, nil
 }
 
-//GetQuery return a query stored in the database
+// GetQuery return a query stored in the database
 func (db Database) GetQuery(queryName string) (string, error) {
 	reader, err := db.ReaderCmd("SELECT DISTINCT Command FROM StoredQueries WHERE Name = ?", queryName)
 	if err != nil {
@@ -95,7 +95,7 @@ func (db Database) GetQuery(queryName string) (string, error) {
 	return sql, nil
 }
 
-//ScanTable scan a table
+// ScanTable scan a table
 func (db Database) ScanTable(sqlCommand string, params ...interface{}) ([]map[string]interface{}, error) {
 	reader, err := db.ReaderCmd(sqlCommand, params...)
 	if err != nil {
@@ -148,7 +148,7 @@ func (db Database) ScanTable(sqlCommand string, params ...interface{}) ([]map[st
 	return data, nil
 }
 
-//Add add a record in a table
+// Add add a record in a table
 func (db Database) Delete(tableName string, id int64) error {
 	err := db.QueryCmd("DELETE FROM "+tableName+" WHERE ID = ?", id)
 	if err != nil {
@@ -157,7 +157,7 @@ func (db Database) Delete(tableName string, id int64) error {
 	return nil
 }
 
-//Get all object in database
+// Get all object in database
 func (db Database) GetTables() ([]string, error) {
 	result, err := db.ScanTable("SELECT DISTINCT * FROM sqlite_master")
 	if err != nil {
@@ -167,7 +167,7 @@ func (db Database) GetTables() ([]string, error) {
 	return nil, nil
 }
 
-//Check if object exist
+// Check if object exist
 func (db Database) Exist(name string) (bool, error) {
 	result, err := db.ScanTable("SELECT DISTINCT * FROM sqlite_master WHERE tbl_name = ?", name)
 	if err != nil {
@@ -176,7 +176,7 @@ func (db Database) Exist(name string) (bool, error) {
 	return len(result) > 0, nil
 }
 
-//Create table
+// Create table
 func (db Database) CreateTable(name string, fields []Field) error {
 	sql := "CREATE TABLE " + name + "("
 	for _, f := range fields {
@@ -186,7 +186,7 @@ func (db Database) CreateTable(name string, fields []Field) error {
 	return db.QueryCmd(sql)
 }
 
-//Insert new Stored Query
+// Insert new Stored Query
 func (db Database) InsertStoredQuery(name, command string) error {
 	return db.QueryCmd("INSERT INTO StoredQueries(Name, Command, InsertDate, IDInsertUser, EditDate, IDEditUser) VALUES(?, ?, DateTime('now'), 0, DateTime('now'), 0)", name, command)
 }

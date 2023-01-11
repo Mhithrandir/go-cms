@@ -1,6 +1,6 @@
 package menu
 
-import "go-desk/logs"
+import "go-cms/logs"
 
 //Add add a routes
 func (m Menu) Add() error {

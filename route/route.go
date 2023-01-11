@@ -1,16 +1,16 @@
 package route
 
 import (
-	"go-desk/customrequest"
+	customrequest "go-cmscustomrequest"
 
-	"go-desk/logs"
-	"go-desk/responses"
-	"go-desk/usertype"
+	logs "go-cmslogs"
+	responses "go-cmsresponses"
+	usertype "go-cmsusertype"
 	"math"
 	"strconv"
 )
 
-//ParseRoute handle the func specified in the apirequest
+// ParseRoute handle the func specified in the apirequest
 func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "add":
@@ -30,7 +30,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	}
 }
 
-//Add add a new route
+// Add add a new route
 func Add(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -90,7 +90,7 @@ func GetRoutesFiltered(request customrequest.CustomRequest) {
 	responses.Ok(request, result, 0, 0)
 }
 
-//GetRoutes returns all routes configured in the database
+// GetRoutes returns all routes configured in the database
 func GetRoutes(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -124,7 +124,7 @@ func GetRoutes(request customrequest.CustomRequest) {
 	responses.Ok(request, result, page, int(pageNumber))
 }
 
-//Delete delete a route from database
+// Delete delete a route from database
 func Delete(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -143,7 +143,7 @@ func Delete(request customrequest.CustomRequest) {
 	responses.Ok(request, true, 0, 0)
 }
 
-//Update a route in the database
+// Update a route in the database
 func Update(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -182,7 +182,7 @@ func Update(request customrequest.CustomRequest) {
 	responses.Ok(request, true, 0, 0)
 }
 
-//Check check if user has permission to open this route
+// Check check if user has permission to open this route
 func Check(request customrequest.CustomRequest) {
 	DB = request.DB
 

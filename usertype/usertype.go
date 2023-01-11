@@ -1,13 +1,13 @@
 package usertype
 
 import (
-	"go-desk/customrequest"
-	"go-desk/logs"
-	"go-desk/responses"
+	customrequest "go-cmscustomrequest"
+	logs "go-cmslogs"
+	responses "go-cmsresponses"
 	"strconv"
 )
 
-//ParseRoute handle the func specified in the apirequest
+// ParseRoute handle the func specified in the apirequest
 func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "getusertypes":
@@ -21,7 +21,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	}
 }
 
-//GetUserTypes retrieve alla UserTypes from database
+// GetUserTypes retrieve alla UserTypes from database
 func GetUserTypes(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -32,7 +32,7 @@ func GetUserTypes(request customrequest.CustomRequest) {
 	responses.Ok(request, result, 0, 0)
 }
 
-//DeleteUserType delete a route from database
+// DeleteUserType delete a route from database
 func DeleteUserType(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -51,7 +51,7 @@ func DeleteUserType(request customrequest.CustomRequest) {
 	responses.Ok(request, true, 0, 0)
 }
 
-//AddUserType insert a UserType in database
+// AddUserType insert a UserType in database
 func AddUserType(request customrequest.CustomRequest) {
 	DB = request.DB
 

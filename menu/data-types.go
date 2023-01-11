@@ -1,14 +1,14 @@
 package menu
 
 import (
-	"go-desk/database"
-	"go-desk/route"
+	"go-cms/database"
+	"go-cms/route"
 )
 
-//DB variables to handle database
+// DB variables to handle database
 var DB *database.Database
 
-//Menu struct for the menu table
+// Menu struct for the menu table
 type Menu struct {
 	MenuName   string      `json:"MenuName"`
 	Name       string      `json:"Name"`

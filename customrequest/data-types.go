@@ -1,8 +1,8 @@
 package customrequest
 
 import (
-	"go-desk/config"
-	"go-desk/database"
+	"go-cms/config"
+	"go-cms/database"
 	"net/http"
 
 	"github.com/dgrijalva/jwt-go"
@@ -20,7 +20,7 @@ type CustomRequest struct {
 	Type       string              `json:"Type"`
 }
 
-//Claims struct for JWT
+// Claims struct for JWT
 type Claims struct {
 	IDUser       int64  `json:"IDUser"`
 	Username     string `json:"Username"`

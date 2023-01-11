@@ -1,6 +1,6 @@
 package route
 
-import "go-desk/logs"
+import logs "go-cmslogs"
 
 //Add add a routes
 func (r Route) Add() error {

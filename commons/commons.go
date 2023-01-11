@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
-	"go-desk/customrequest"
-	"go-desk/logs"
+	"go-cms/customrequest"
+	"go-cms/logs"
 	"image"
 	"image/jpeg"
 	_ "image/png"
@@ -23,7 +23,7 @@ import (
 	"github.com/nfnt/resize"
 )
 
-//CommonLoad Generic func to be invoked before everything else
+// CommonLoad Generic func to be invoked before everything else
 func CommonLoad(request customrequest.CustomRequest) FunctionResponse {
 	if request.GetMethod() == "OPTIONS" {
 		return Options
@@ -34,7 +34,7 @@ func CommonLoad(request customrequest.CustomRequest) FunctionResponse {
 	return Yes
 }
 
-//ParseMysqlDateTime convert datetime []byte readed from mysql database to a time type
+// ParseMysqlDateTime convert datetime []byte readed from mysql database to a time type
 func ParseMysqlDateTime(dateTime []byte) (time.Time, error) {
 	appString := strings.Split(string(dateTime), " ")
 	if len(appString) == 2 {
@@ -48,14 +48,14 @@ func ParseMysqlDateTime(dateTime []byte) (time.Time, error) {
 	return time.Now(), nil
 }
 
-//CryptPassword crypt the password with MD5
+// CryptPassword crypt the password with MD5
 func CryptPassword(pass string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(pass))
 	return hex.EncodeToString(hasher.Sum(nil))
 }
 
-//CreateJwsToken create a jws token
+// CreateJwsToken create a jws token
 func CreateJwsToken(username string, iduser, idusertype int64, request customrequest.CustomRequest) (string, error) {
 
 	//Create the claims
@@ -79,7 +79,7 @@ func CreateJwsToken(username string, iduser, idusertype int64, request customreq
 	return tokenString, nil
 }
 
-//VerifyPassword verify if the password is valid
+// VerifyPassword verify if the password is valid
 func VerifyPassword(pass, passOld string) string {
 	var lower = regexp.MustCompile(`[a-z]`)
 	var upper = regexp.MustCompile(`[A-Z]`)
@@ -108,7 +108,7 @@ func VerifyPassword(pass, passOld string) string {
 	return ""
 }
 
-//SendMail send a mail
+// SendMail send a mail
 func SendMail(from, to, subject, message string, request customrequest.CustomRequest) (bool, error) {
 	auth := smtp.PlainAuth("", request.Config.AccountMail.Username, request.Config.AccountMail.Password, request.Config.AccountMail.SMTPServer)
 	var tempTo []string
@@ -121,7 +121,7 @@ func SendMail(from, to, subject, message string, request customrequest.CustomReq
 	return true, nil
 }
 
-//UploadFile upload a file in a specifi folder
+// UploadFile upload a file in a specifi folder
 func UploadFile(request customrequest.CustomRequest, basePath string, extensions []string) (int, string) {
 
 	err := request.Request.ParseMultipartForm(request.Config.MaxUploadSize)
@@ -182,7 +182,7 @@ func UploadFile(request customrequest.CustomRequest, basePath string, extensions
 	return http.StatusOK, basePath + handler.Filename
 }
 
-//ResizeImageresize an image
+// ResizeImageresize an image
 func ResizeImage(path string, height, width uint) error {
 	reader, err := os.Open(path)
 	if err != nil {

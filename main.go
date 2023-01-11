@@ -1,17 +1,17 @@
 package main
 
 import (
-	"go-desk/commons"
-	"go-desk/config"
-	"go-desk/customrequest"
-	"go-desk/database"
-	"go-desk/logs"
-	"go-desk/menu"
-	"go-desk/responses"
-	"go-desk/route"
+	"go-cms/commons"
+	"go-cms/config"
+	"go-cms/customrequest"
+	"go-cms/database"
+	"go-cms/logs"
+	"go-cms/menu"
+	"go-cms/responses"
+	"go-cms/route"
 
-	"go-desk/user"
-	"go-desk/usertype"
+	"go-cms/user"
+	"go-cms/usertype"
 	"log"
 	"net/http"
 	"strconv"

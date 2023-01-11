@@ -1,4 +1,4 @@
-module go-desk
+module go-cms
 
 go 1.18
 

@@ -1,18 +1,18 @@
 package user
 
 import (
-	"go-desk/commons"
-	"go-desk/customrequest"
-	"go-desk/logs"
-	"go-desk/responses"
-	"go-desk/usertype"
+	commons "go-cmscommons"
+	customrequest "go-cmscustomrequest"
+	logs "go-cmslogs"
+	responses "go-cmsresponses"
+	usertype "go-cmsusertype"
 	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
 )
 
-//ParseRoute handle the func specified in the apirequest
+// ParseRoute handle the func specified in the apirequest
 func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "login":
@@ -38,7 +38,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	}
 }
 
-//Login handle users login
+// Login handle users login
 func Login(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -81,7 +81,7 @@ func Login(request customrequest.CustomRequest) {
 	}
 }
 
-//Register a new user
+// Register a new user
 func Register(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -157,7 +157,7 @@ func Register(request customrequest.CustomRequest) {
 	responses.Ok(request, true, 0, 0)
 }
 
-//VerifyUser verify the mail of a user
+// VerifyUser verify the mail of a user
 func VerifyUser(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -201,7 +201,7 @@ func VerifyUser(request customrequest.CustomRequest) {
 	responses.Ok(request, &token, 0, 0)
 }
 
-//Verify the user code when user click on email
+// Verify the user code when user click on email
 func VerifyUserCode(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -225,7 +225,7 @@ func VerifyUserCode(request customrequest.CustomRequest) {
 	responses.Ok(request, true, 0, 0)
 }
 
-//Reset the password in the database for a specific user
+// Reset the password in the database for a specific user
 func ResetPassword(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -281,7 +281,7 @@ func ResetPassword(request customrequest.CustomRequest) {
 	responses.Ok(request, true, 0, 0)
 }
 
-//CheckUserExist verify the user exist
+// CheckUserExist verify the user exist
 func CheckUserExist(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -301,7 +301,7 @@ func CheckUserExist(request customrequest.CustomRequest) {
 	responses.Ok(request, results, 0, 0)
 }
 
-//LoadUsers load users
+// LoadUsers load users
 func LoadUsers(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -346,7 +346,7 @@ func LoadUsersByUsertype(request customrequest.CustomRequest) {
 	responses.Ok(request, result, 0, 0)
 }
 
-//Update update user information
+// Update update user information
 func Update(request customrequest.CustomRequest) {
 	DB = request.DB
 

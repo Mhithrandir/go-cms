@@ -1,6 +1,6 @@
 package usertype
 
-import "go-desk/logs"
+import "go-cms/logs"
 
 //Delete a usertype
 func Delete(id int64) error {

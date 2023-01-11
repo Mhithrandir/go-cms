@@ -3,11 +3,11 @@ package usertype
 import (
 	"database/sql"
 	"errors"
-	"go-desk/commons"
-	"go-desk/logs"
+	commons "go-cmscommons"
+	logs "go-cmslogs"
 )
 
-//Return a usertype for a specific description
+// Return a usertype for a specific description
 func GetUserTypeFromDescription(desc string) (UserType, error) {
 	reader, err := DB.Reader("GetUserTypeFromDescription", desc)
 	if err != nil {
@@ -26,7 +26,7 @@ func GetUserTypeFromDescription(desc string) (UserType, error) {
 	}
 }
 
-//Load alla usertype
+// Load alla usertype
 func Load() ([]UserType, error) {
 	reader, err := DB.Reader("LoadUserType")
 	if err != nil {
@@ -41,7 +41,7 @@ func Load() ([]UserType, error) {
 	return results, nil
 }
 
-//Exist check if usertype exist in the database
+// Exist check if usertype exist in the database
 func (u UserType) Exist() (bool, error) {
 	result, err := GetUserTypeFromDescription(u.Description)
 	if err != nil && err.Error() == "User-Type not found" {
@@ -52,7 +52,7 @@ func (u UserType) Exist() (bool, error) {
 	return result != UserType{}, nil
 }
 
-//Read a record from database
+// Read a record from database
 func read(reader *sql.Rows) ([]UserType, error) {
 	var rows []UserType
 	for reader.Next() {

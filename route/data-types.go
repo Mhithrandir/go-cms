@@ -1,11 +1,11 @@
 package route
 
 import (
-	"go-desk/database"
-	"go-desk/usertype"
+	"go-cms/database"
+	"go-cms/usertype"
 )
 
-//DB variables to handle database
+// DB variables to handle database
 var DB *database.Database
 
 type RequestMethod string
@@ -25,7 +25,7 @@ const (
 	Page RequestType = "Page"
 )
 
-//Route struct for the Route table
+// Route struct for the Route table
 type Route struct {
 	Package     string            `json:"Package"`
 	Func        string            `json:"Func"`
@@ -36,7 +36,7 @@ type Route struct {
 	database.BaseTable
 }
 
-//RoutePermission struct for RoutePermission table
+// RoutePermission struct for RoutePermission table
 type RoutePermission struct {
 	IDRoute           int64 `json:"IDRoute"`
 	IDUserType        int64 `json:"IDUserType"`

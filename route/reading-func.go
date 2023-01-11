@@ -3,13 +3,13 @@ package route
 import (
 	"database/sql"
 	"errors"
-	"go-desk/commons"
-	"go-desk/logs"
-	"go-desk/usertype"
+	commons "go-cmscommons"
+	logs "go-cmslogs"
+	usertype "go-cmsusertype"
 	"sort"
 )
 
-//Exist check if routes exist
+// Exist check if routes exist
 func (r Route) Exist() (bool, error) {
 	reader, err := DB.Reader("RouteExist", r.Package, r.Func, r.Type)
 	if err != nil {
@@ -23,7 +23,7 @@ func (r Route) Exist() (bool, error) {
 	return (len(results) > 0), nil
 }
 
-//LoadRoutes return all routes in the database
+// LoadRoutes return all routes in the database
 func LoadRoutes(start, end int) ([]Route, error) {
 	reader, err := DB.Reader("LoadRoutes", start, end)
 	if err != nil {
@@ -45,7 +45,7 @@ func LoadRoutes(start, end int) ([]Route, error) {
 	return results, err
 }
 
-//LoadRoutes return all routes in the database
+// LoadRoutes return all routes in the database
 func LoadRoutesFiltered(filter string) ([]Route, error) {
 	reader, err := DB.Reader("LoadRoutesFiltered", "%"+filter+"%", "%"+filter+"%", "%"+filter+"%")
 	if err != nil {
@@ -67,7 +67,7 @@ func LoadRoutesFiltered(filter string) ([]Route, error) {
 	return results, err
 }
 
-//CountRoute count all records in the table
+// CountRoute count all records in the table
 func CountRoute() (int64, error) {
 	reader, err := DB.Reader("CountRoute")
 	if err != nil {
@@ -98,7 +98,7 @@ func (r Route) GetPermission() ([]RoutePermission, error) {
 	return results, err
 }
 
-//CheckRoute check if routes exist and has the specific permission
+// CheckRoute check if routes exist and has the specific permission
 func (r Route) CheckRoute(iduserType int64) (bool, error) {
 	sql, err := DB.GetQuery("CheckRoute")
 	if err != nil {
@@ -174,7 +174,7 @@ func GetRouteFromID(id int64) (Route, error) {
 	return results[0], err
 }
 
-//read read a route record from database
+// read read a route record from database
 func read(reader *sql.Rows) ([]Route, error) {
 	var rows []Route
 	for reader.Next() {
@@ -211,7 +211,7 @@ func read(reader *sql.Rows) ([]Route, error) {
 	return rows, nil
 }
 
-//readPermission read all permission for a specific route item
+// readPermission read all permission for a specific route item
 func readPermission(reader *sql.Rows) ([]RoutePermission, error) {
 	var rows []RoutePermission
 	for reader.Next() {

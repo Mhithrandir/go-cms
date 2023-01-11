@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"go-desk/config"
-	"go-desk/database"
-	"go-desk/logs"
+	"go-cms/config"
+	"go-cms/database"
+	"go-cms/logs"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -16,7 +16,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-//Parse parse a request from server
+// Parse parse a request from server
 func New(w http.ResponseWriter, r *http.Request, db *database.Database) (CustomRequest, error) {
 	parametri := strings.Split(r.URL.RawQuery, "&")
 	var a CustomRequest
@@ -84,17 +84,17 @@ func New(w http.ResponseWriter, r *http.Request, db *database.Database) (CustomR
 	return a, nil
 }
 
-//GetPath returns the path of the request
+// GetPath returns the path of the request
 func (a CustomRequest) GetPath() string {
 	return a.Request.URL.Path
 }
 
-//GetMethod returns the method of the request
+// GetMethod returns the method of the request
 func (a CustomRequest) GetMethod() string {
 	return a.Request.Method
 }
 
-//CheckPermission check if user exist and has permission to open this route
+// CheckPermission check if user exist and has permission to open this route
 func (a CustomRequest) CheckPermission() (CustomRequest, error) {
 	a, err := a.VerifyJwsToken()
 	if err != nil {
@@ -115,7 +115,7 @@ func (a CustomRequest) CheckPermission() (CustomRequest, error) {
 	return a, nil
 }
 
-//VerifyJwsToken Verify the JSON token
+// VerifyJwsToken Verify the JSON token
 func (a CustomRequest) VerifyJwsToken() (CustomRequest, error) {
 	//Saved in the header from a angular or other javascript application
 	cookie := a.Request.Header.Get("Authorization")
@@ -164,7 +164,7 @@ func (a CustomRequest) VerifyJwsToken() (CustomRequest, error) {
 	return a, nil
 }
 
-//ParserBodyRequest read the body from post request and fill a specific struct
+// ParserBodyRequest read the body from post request and fill a specific struct
 func (a CustomRequest) ParserBodyRequest(value interface{}) error {
 	body, err := ioutil.ReadAll(a.Request.Body)
 	if err != nil {

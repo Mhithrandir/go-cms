@@ -5,10 +5,10 @@ import (
 	"log"
 	"os"
 
-	"go-desk/logs"
+	"go-cms/logs"
 )
 
-//LoadConfiguration Load the config file
+// LoadConfiguration Load the config file
 func LoadConfiguration(config *Config) error {
 	configFile, err := os.Open("./config.json")
 	defer configFile.Close()
@@ -25,7 +25,7 @@ func LoadConfiguration(config *Config) error {
 	return nil
 }
 
-//Save the information in the config file
+// Save the information in the config file
 func (c Config) Save() error {
 	file, err := json.MarshalIndent(c, "", " ")
 	if err != nil {

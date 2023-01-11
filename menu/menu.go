@@ -1,13 +1,13 @@
 package menu
 
 import (
-	"go-desk/customrequest"
-	"go-desk/logs"
-	"go-desk/responses"
+	"go-cms/customrequest"
+	"go-cms/logs"
+	"go-cms/responses"
 	"strconv"
 )
 
-//ParseRoute handle the func specified in the apirequest
+// ParseRoute handle the func specified in the apirequest
 func ParseRoute(request customrequest.CustomRequest) {
 	switch request.Func {
 	case "getmenu":
@@ -26,7 +26,7 @@ func ParseRoute(request customrequest.CustomRequest) {
 	}
 }
 
-//GetMenu Load a specific menu
+// GetMenu Load a specific menu
 func GetMenu(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -38,7 +38,7 @@ func GetMenu(request customrequest.CustomRequest) {
 	responses.Ok(request, result, 0, 0)
 }
 
-//GetPlainMenu Load all menu
+// GetPlainMenu Load all menu
 func GetPlainMenu(request customrequest.CustomRequest) {
 	DB = request.DB
 	var page int
@@ -68,7 +68,7 @@ func GetPlainMenu(request customrequest.CustomRequest) {
 	responses.Ok(request, result, page, int(count)/request.Config.Pagination)
 }
 
-//GetMenuNames Load all menu names
+// GetMenuNames Load all menu names
 func GetMenuNames(request customrequest.CustomRequest) {
 	DB = request.DB
 	result, err := LoadMenuNames()
@@ -79,7 +79,7 @@ func GetMenuNames(request customrequest.CustomRequest) {
 	responses.Ok(request, result, -1, -1)
 }
 
-//Add add a menu item to the database
+// Add add a menu item to the database
 func Add(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -108,7 +108,7 @@ func Add(request customrequest.CustomRequest) {
 	responses.Ok(request, true, 0, 0)
 }
 
-//Update a menu item to the database
+// Update a menu item to the database
 func Update(request customrequest.CustomRequest) {
 	DB = request.DB
 
@@ -136,7 +136,7 @@ func Update(request customrequest.CustomRequest) {
 	responses.Ok(request, true, 0, 0)
 }
 
-//Delete delete a menu item from database
+// Delete delete a menu item from database
 func Delete(request customrequest.CustomRequest) {
 	DB = request.DB
 

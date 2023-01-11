@@ -1,12 +1,12 @@
 package user
 
 import (
-	"go-desk/database"
-	"go-desk/usertype"
+	database "go-cmsdatabase"
+	usertype "go-cmsusertype"
 	"time"
 )
 
-//DB variables to handle database
+// DB variables to handle database
 var DB *database.Database
 
 type User struct {

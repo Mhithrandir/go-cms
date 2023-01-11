@@ -3,14 +3,14 @@ package user
 import (
 	"database/sql"
 	"errors"
-	"go-desk/commons"
-	"go-desk/customrequest"
-	"go-desk/logs"
+	commons "go-cmscommons"
+	customrequest "go-cmscustomrequest"
+	logs "go-cmslogs"
 	"strconv"
 	"time"
 )
 
-//CheckLogin check the credentials in the database
+// CheckLogin check the credentials in the database
 func (u User) CheckLogin() ([]User, error) {
 	reader, err := DB.Reader("CheckLogin", u.Username, commons.CryptPassword(u.Password))
 	if err != nil {
@@ -25,7 +25,7 @@ func (u User) CheckLogin() ([]User, error) {
 	return results, nil
 }
 
-//PasswordExpired check if user password is expired
+// PasswordExpired check if user password is expired
 func (u User) PasswordExpired() bool {
 	//If the duration is -1 the password never expired
 	if u.PasswordDuration == -1 {
@@ -36,7 +36,7 @@ func (u User) PasswordExpired() bool {
 	return !time.Now().Before(app)
 }
 
-//GetUserFromCodeResetPassword get the user that has the specified code reset password
+// GetUserFromCodeResetPassword get the user that has the specified code reset password
 func GetUserFromCodeResetPassword(code string) ([]User, error) {
 	reader, err := DB.Reader("GetUserFromCodeResetPassword", code)
 	if err != nil {
@@ -51,7 +51,7 @@ func GetUserFromCodeResetPassword(code string) ([]User, error) {
 	return results, nil
 }
 
-//GetUsers return an array of users
+// GetUsers return an array of users
 func GetUsers(start, end int) ([]User, error) {
 	reader, err := DB.Reader("GetUsers", start, end)
 	if err != nil {
@@ -66,7 +66,7 @@ func GetUsers(start, end int) ([]User, error) {
 	return results, nil
 }
 
-//GetUsers return an array of users
+// GetUsers return an array of users
 func GetUsersByUsertype(usertype string) ([]User, error) {
 	reader, err := DB.Reader("GetUsersByUsertype", usertype)
 	if err != nil {
@@ -81,7 +81,7 @@ func GetUsersByUsertype(usertype string) ([]User, error) {
 	return results, nil
 }
 
-//GetUserByID return a user from id
+// GetUserByID return a user from id
 func GetUserByID(id int64) (User, error) {
 	reader, err := DB.Reader("GetUserByID", id)
 	if err != nil {
@@ -99,7 +99,7 @@ func GetUserByID(id int64) (User, error) {
 	return results[0], nil
 }
 
-//CheckUsername verifyu if username already exist
+// CheckUsername verifyu if username already exist
 func CheckUsername(username string) (bool, error) {
 	reader, err := DB.Reader("CheckUsername", username)
 	if err != nil {
@@ -114,7 +114,7 @@ func CheckUsername(username string) (bool, error) {
 	return (len(results) > 0), nil
 }
 
-//CountUser count all records in the table
+// CountUser count all records in the table
 func CountUser() (int64, error) {
 	reader, err := DB.Reader("CountUser")
 	defer reader.Close()
@@ -128,12 +128,12 @@ func CountUser() (int64, error) {
 	return count, nil
 }
 
-//Exist check if user exist
+// Exist check if user exist
 func (u User) Exist() (bool, error) {
 	return CheckUsername(u.Username)
 }
 
-//Create a login token
+// Create a login token
 func CreateToken(user User, request customrequest.CustomRequest) (commons.AuthorizationToken, error) {
 	tokenString, err := commons.CreateJwsToken(user.Username, user.ID, user.IDUserType, request)
 	if err != nil {
@@ -151,7 +151,7 @@ func CreateToken(user User, request customrequest.CustomRequest) (commons.Author
 
 }
 
-//read Read all the record from the query
+// read Read all the record from the query
 func read(reader *sql.Rows) ([]User, error) {
 	var rows []User
 	for reader.Next() {

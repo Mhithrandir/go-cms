@@ -2,7 +2,7 @@ package responses
 
 import (
 	"encoding/json"
-	"go-desk/customrequest"
+	"go-cms/customrequest"
 	"net/http"
 )
 
@@ -12,7 +12,7 @@ type Package struct {
 	PageCount int         `json:"PageCount"`
 }
 
-//SetApiHeaders set headers for allowing ajax call
+// SetApiHeaders set headers for allowing ajax call
 func SetApiHeaders(request customrequest.CustomRequest, status int, value interface{}) {
 	request.Writer.Header().Set("Access-Control-Allow-Origin", request.Config.Origin)
 	request.Writer.Header().Set("Access-Control-Allow-Methods", request.Config.Methods)
@@ -22,37 +22,37 @@ func SetApiHeaders(request customrequest.CustomRequest, status int, value interf
 	json.NewEncoder(request.Writer).Encode(value)
 }
 
-//NotFound print the not found page (error code 400)
+// NotFound print the not found page (error code 400)
 func NotFound(request customrequest.CustomRequest) {
 	SetApiHeaders(request, http.StatusNotFound, nil)
 }
 
-//NotAccettable print the not found page (error code 406)
+// NotAccettable print the not found page (error code 406)
 func NotAccettable(request customrequest.CustomRequest, errorMessage string) {
 	SetApiHeaders(request, http.StatusNotAcceptable, errorMessage)
 }
 
-//InternalServerError print the internal server error page (error code 500)
+// InternalServerError print the internal server error page (error code 500)
 func InternalServerError(request customrequest.CustomRequest, errorMessage string) {
 	SetApiHeaders(request, http.StatusInternalServerError, errorMessage)
 }
 
-//Unauthorized print the not found page (error code 401)
+// Unauthorized print the not found page (error code 401)
 func Unauthorized(request customrequest.CustomRequest) {
 	SetApiHeaders(request, http.StatusUnauthorized, nil)
 }
 
-//BadRequest print the internal server error page (error code 400)
+// BadRequest print the internal server error page (error code 400)
 func BadRequest(request customrequest.CustomRequest, errorMessage string) {
 	SetApiHeaders(request, http.StatusBadRequest, errorMessage)
 }
 
-//PasswordExpired Send custom response indicate the password is expired
+// PasswordExpired Send custom response indicate the password is expired
 func PasswordExpired(request customrequest.CustomRequest, value interface{}) {
 	SetApiHeaders(request, http.StatusUnauthorized, value)
 }
 
-//Yes send ok response
+// Yes send ok response
 func Ok(request customrequest.CustomRequest, value interface{}, page, pageCount int) {
 	SetApiHeaders(request, http.StatusOK, Package{Data: value, Page: page, PageCount: pageCount})
 }

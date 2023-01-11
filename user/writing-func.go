@@ -1,18 +1,18 @@
 package user
 
 import (
-	"go-desk/commons"
-	"go-desk/logs"
+	commons "go-cmscommons"
+	logs "go-cmslogs"
 	"time"
 )
 
-//SetLoggedIn update last login field
+// SetLoggedIn update last login field
 func (u User) SetLoggedIn() error {
 	u.LastLogin = time.Now()
 	return u.Update()
 }
 
-//Update a user
+// Update a user
 func (u User) Update() error {
 	err := DB.Query("UpdateUserUsername", u.Username, u.ID)
 	if err != nil {
@@ -49,12 +49,12 @@ func (u User) Update() error {
 	return nil
 }
 
-//Delete a route
+// Delete a route
 func Delete(id int64) error {
 	return DB.Delete("Users", id)
 }
 
-//Add add a user
+// Add add a user
 func (u User) Add() error {
 	err := DB.Query("AddUser",
 		u.Username,
