@@ -1,0 +1,64 @@
+@import "halfmoon/css/halfmoon.min.css";
+@import "halfmoon/css/cores/halfmoon.modern.css";
+
+#container-main {
+  overflow: auto;
+  max-height: calc(100vh - 60px);
+}
+.svg-icon {
+  max-width: 25px;
+  min-width: 25px;
+}
+.menu-item {
+  text-align: left;
+  line-height: 25px;
+  display: flex;
+  cursor: pointer;
+}
+.menu-item:hover {
+  /* background-color: #0052cc; */
+  background-color: #008ecc;
+  border-color: #008ecc;
+}
+.active:hover {
+  background-color: #006b99;
+  border-color: #006b99;
+}
+.tendina {
+  background-color: #0000003f;
+}
+.row-selected {
+  background-color: #424c5d;
+}
+.menu-item-grab {
+  line-height: 22px;
+  cursor: pointer;
+  border: 1px solid gray;
+  border-radius: 2.5px;
+  margin-top: 5px;
+  background-color: #2f3846;
+}
+.menu-item-grab:hover {
+  /* #5c6e8a; #2f3846 */
+  background-color: #5c6e8a;
+}
+.drop-container-error, .drop-container {
+  min-height: 25px;
+  padding-left: 15px;
+  width: 100%;
+  display: block;
+}
+.drop-container-parent {
+  border: 1px dotted white;
+  padding: 5px;
+}
+.col-menu {
+  border: 1px solid gray;
+  border-radius: 2.5px;
+}
+.menu-selected {
+  background-color: #616161;
+}
+.collapsed > .svg-icon{
+  transform: rotate(-90deg);
+}
