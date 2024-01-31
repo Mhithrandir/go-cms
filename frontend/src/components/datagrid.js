@@ -19,7 +19,7 @@ function DataGrid({table}) {
                             {table.ActionButtons.map((b) => {
                                 return <button
                                     key={b.Label}
-                                    style={{ minWidth: '60px' }}
+                                    style={{ minWidth: '60px', whiteSpace: 'nowrap' }}
                                     type="button"
                                     className={b.className}
                                     data-bs-toggle="modal"

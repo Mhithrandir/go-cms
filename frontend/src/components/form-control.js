@@ -71,7 +71,7 @@ function FormControl(props) {
                     <select className="form-select" id="example-select-1" { ...props }>
                         <option></option>
                         {props.options.map((o) => {
-                            return <option key={o} value={o}>{o}</option>
+                            return typeof o === "object" ? <option key={o.Key} value={o.Key}>{o.Value}</option> : <option key={o} value={o}>{o}</option>;
                         })}
                     </select>
                 </div>);
@@ -79,6 +79,11 @@ function FormControl(props) {
                 return (<div className="form-check form-switch form-check-inline">
                     <input className={`form-check-input ${errors.errorMessage.length > 0 ? 'is-invalid' : 'is-valid'}`} { ...props } type="checkbox" role="switch" />
                     <label className="form-check-label" htmlFor={props.id}>{props.label}</label>
+                </div>);
+            case "number":
+                return (<div className="form-floating mb-3">
+                    <input onChange={OnChange} type="number" className={`form-control ${errors.errorMessage.length > 0 ? 'is-invalid' : 'is-valid'}`} { ...props } />
+                    <label className="form-label" htmlFor={props.id}>{props.label}</label>
                 </div>);
             default:
                 return (<div className="form-floating mb-3">

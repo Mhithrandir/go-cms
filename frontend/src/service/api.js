@@ -88,6 +88,18 @@ async function getroutes(page) {
     return false;
 }
 
+async function getroutesfiltered(propriety, value) {
+    let result = await getroutes(0);
+    if(!result) return false;
+    return result.Data.filter((r) => r[propriety] === value);
+    // getroutes(0).then((result) => {
+    //     return result.Data.filter((r) => r[propriety] === value);
+    // }).catch((err) => {
+    //     console.error(err);
+    //     return false;
+    // });
+}
+
 async function updateroute(route) {
     let result = await fetch(baseUrl + "api/route/update", {
         method: 'POST',
@@ -225,6 +237,7 @@ export {
     isUserLogged,
     logout,
     getroutes,
+    getroutesfiltered,
     getusers,
     getusertypes,
     updateroute,

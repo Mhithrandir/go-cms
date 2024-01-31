@@ -14,11 +14,10 @@
   line-height: 25px;
   display: flex;
   cursor: pointer;
-}
-.menu-item:hover {
-  /* background-color: #0052cc; */
-  background-color: #008ecc;
-  border-color: #008ecc;
+  &:hover {
+    background-color: #008ecc;
+    border-color: #008ecc;
+  }
 }
 .active:hover {
   background-color: #006b99;
@@ -37,10 +36,9 @@
   border-radius: 2.5px;
   margin-top: 5px;
   background-color: #2f3846;
-}
-.menu-item-grab:hover {
-  /* #5c6e8a; #2f3846 */
-  background-color: #5c6e8a;
+  &:hover {
+    background-color: #5c6e8a;
+  }
 }
 .drop-container-error, .drop-container {
   min-height: 25px;
@@ -59,6 +57,8 @@
 .menu-selected {
   background-color: #616161;
 }
-.collapsed > .svg-icon{
-  transform: rotate(-90deg);
+.collapsed{
+  .svg-icon{
+    transform: rotate(-90deg);
+  }
 }
