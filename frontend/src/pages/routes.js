@@ -10,6 +10,7 @@ function Routes() {
     const [ routes, setRoutes ] = useState([]);
     const [ permissions, setPermissions ] = useState([]);
     const [ datatables, setDataTables ] = useState({});
+    const [ dialog, setDialog ] = useState("");
     const [ selectedRoute, setSelectedRoute ] = useState({
         Package: '',
         Func: '',
@@ -43,8 +44,8 @@ function Routes() {
                         ],
                         Rows: result.Data.filter((f) => f.Package === r.Package),
                         ActionButtons: [
-                            { className: "btn btn-light", ModalId: "#edit-modal", Label: "Edit", onClick: (e) => { onEdit(e); } },
-                            { className: "btn btn-danger", ModalId: "#delete-modal", Label: "Delete" }
+                            { className: "btn btn-light", Label: "Edit", onClick: (e) => { setSelectedRoute(e); setDialog("edit"); } },
+                            { className: "btn btn-danger", Label: "Delete", onClick: (e) => { setSelectedRoute(e); setDialog("delete"); } }
                         ],
                         selectedRow: (row) => {
                             let dt = {};
@@ -88,10 +89,9 @@ function Routes() {
             console.error(err);
         });
     }
-
     const onAdd = (e) => {
         let selRoute = {
-            Package: '',
+            Package: e,
             Func: '',
             Type: '',
             Method: '',
@@ -101,29 +101,22 @@ function Routes() {
         permissions.forEach((p) => {
             selRoute.Permissions.push({
                 Enabled: false,
+                IDUserType: p.ID,
                 UserType: {
                     Description: p
                 }
             })
         });
-        console.log(selRoute);
         setSelectedRoute(selRoute);
-    }
-
-    const onEdit = (e) => {
-        console.log(e);
-        setSelectedRoute(e);
-    }
-
-    const onDelete = (e) => {
-        // console.log(e);
-        setSelectedRoute(e);
+        setDialog("add");
     }
 
     const onSave = (e, isEdit) => {
         e.preventDefault();
+
         if(isEdit) {
             updateroute(selectedRoute).then((result) => {
+                setDialog("");
                 if(result.Data) {
                     load();
                 }
@@ -133,6 +126,7 @@ function Routes() {
         }
         else {
             addroute(selectedRoute).then((result) => {
+                setDialog("");
                 if(result.Data) {
                     load();
                 }
@@ -145,6 +139,7 @@ function Routes() {
     const deleteSelected = (e) => {
         e.preventDefault();
         deleteroute(selectedRoute).then((result) => {
+            setDialog("");
             if(result.Data) {
                 load();
             }
@@ -217,21 +212,21 @@ function Routes() {
                                     })}
                                 </tbody>
                             </table> */}
-                            <button type="button" className="btn btn-light" data-bs-toggle="modal" data-bs-target="#add-modal" onClick={() => onAdd()}>Add</button>
+                            <button type="button" className="btn btn-light" onClick={() => onAdd(p)}>Add</button>
                         </div>
                     </div>
                 </div> })
             }
-            <Dialog title={'Add route'} id="add-modal" isForm={true} submit={(formData) => onSave(formData, false)}>
+            <Dialog title={'Add route'} show={ dialog === "add" } id="add-modal" isForm={true} submit={(formData) => onSave(formData, false)} CloseDialog={() => setDialog("")}>
                 <EditRoute permissions={permissions} route={selectedRoute} OnRouteEditChanges={(val) => { setSelectedRoute(val); }}/>
             </Dialog>
-            <Dialog title={'Edit Route'} id="edit-modal" isForm={true} submit={(formData) => onSave(formData, true)}>
+            <Dialog title={'Edit Route'} show={ dialog === "edit" } id="edit-modal" isForm={true} submit={(formData) => onSave(formData, true)} CloseDialog={() => setDialog("")}>
                 <EditRoute permissions={permissions} route={selectedRoute} OnRouteEditChanges={(val) => { setSelectedRoute(val); }}/>
             </Dialog>
-            <Dialog title={'Delete route'} id="delete-modal" isForm={true} saveText={'Delete'} submit={deleteSelected}>
+            <Dialog title={'Delete route'} show={ dialog === "delete" } id="delete-modal" isForm={true} saveText={'Delete'} submit={deleteSelected} CloseDialog={() => setDialog("")}>
                 <p>Are you sure you want to delete this items? this operation cannot be undone</p>
             </Dialog>
-            <button type="button" className="btn btn-light mt-1" data-bs-toggle="modal" data-bs-target="#add-modal">Add</button>
+            <button type="button" className="btn btn-light mt-1" onClick={() => onAdd("")}>Add</button>
         </>)
 }
 

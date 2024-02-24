@@ -3,8 +3,7 @@ import { NavLink } from "react-router-dom";
 import { getmenu } from '../service/api';
 import Icon from "./icons";
 
-function Menu({ menuName }) {
-    // const userlogged = isUserLogged();
+function Menu({ menuName, onClick }) {
     const [ menu, setMenu ] = useState([]);
     useEffect(() => {
         getmenu(menuName).then((result) => {
@@ -18,7 +17,7 @@ function Menu({ menuName }) {
         <div className="accordion">
             {menu && menu.map((m) => {
                 if(m.Childrens === null || m.Childrens.lenght === 0) {
-                    return <NavLink key={m.ID} to={m.Route.Path} className="list-group-item menu-item"><Icon Icon={m.Icon} />{m.Name}</NavLink>
+                    return <NavLink onClick={() => onClick ? onClick() : false } key={m.ID} to={m.Route.Path} className="list-group-item menu-item"><Icon Icon={m.Icon} />{m.Name}</NavLink>
                 }
                 else {
                     return <div key={m.ID} className="accordion-item">
@@ -37,7 +36,7 @@ function Menu({ menuName }) {
                         <div className="accordion-body">
                             <ul className="list-group">
                                 {m.Childrens.map((c) => {
-                                    return <NavLink key={c.ID} to={c.Route.Path} className="list-group-item menu-item"><Icon Icon={c.Icon} />{c.Name}</NavLink>
+                                    return <NavLink onClick={() => onClick ? onClick() : false } key={c.ID} to={c.Route.Path} className="list-group-item menu-item"><Icon Icon={c.Icon} />{c.Name}</NavLink>
                                 })}
                             </ul>
                         </div>

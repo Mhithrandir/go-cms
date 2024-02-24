@@ -7,6 +7,7 @@ import Editor from '@monaco-editor/react';
 import DataGrid from "../components/datagrid";
 import Dialog from "../components/dialog";
 import EditMenuItem from "../components/edit-menu-item";
+import PageBuilderElement from "../components/page-builder-element";
 
 function Menus() {
     const [ menus, setMenus ] = useState([]);
@@ -103,6 +104,9 @@ function Menus() {
                 </div>
             </div>
         })}
+        <div style={{ border: '1px solid gray' }}>
+            <PageBuilderElement />
+        </div>
         <Dialog title={'Add Menu item'} id="add-modal" isForm={true} submit={(formData) => onSave(formData, false)}>
             <EditMenuItem menu={selectedMenu} routes={routes} OnMenuEditChanges={(val) => { setSelectedMenu(val); }}/>
         </Dialog>
@@ -110,8 +114,7 @@ function Menus() {
             <EditMenuItem menu={selectedMenu} routes={routes} OnMenuEditChanges={(val) => { console.log(val); setSelectedMenu(val); }}/>
         </Dialog>
         <Dialog title={'Delete Menu item'} id="delete-modal" isForm={true} saveText={'Delete'} submit={deleteSelected}>
-            asdasdasdd
-            {/* <p>Are you sure you want to delete this items? this operation cannot be undone</p> */}
+            <p>Are you sure you want to delete this items? this operation cannot be undone</p>
         </Dialog>
     </div>);
 }

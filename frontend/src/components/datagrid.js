@@ -22,8 +22,6 @@ function DataGrid({table}) {
                                     style={{ minWidth: '60px', whiteSpace: 'nowrap' }}
                                     type="button"
                                     className={b.className}
-                                    data-bs-toggle="modal"
-                                    data-bs-target={b.ModalId}
                                     onClick={ () => b.onClick !== undefined ? b.onClick(r) : false }>
                                         {b.Label}
                                 </button> })}

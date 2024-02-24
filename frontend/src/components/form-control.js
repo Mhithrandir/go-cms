@@ -85,6 +85,11 @@ function FormControl(props) {
                     <input onChange={OnChange} type="number" className={`form-control ${errors.errorMessage.length > 0 ? 'is-invalid' : 'is-valid'}`} { ...props } />
                     <label className="form-label" htmlFor={props.id}>{props.label}</label>
                 </div>);
+            case "image":
+                return (<div className="form-floating mb-3">
+                    <label className="form-label" htmlFor={props.id}>{props.label}</label>
+                    <input onChange={OnChange} type="file" className={`form-control ${errors.errorMessage.length > 0 ? 'is-invalid' : 'is-valid'}`} { ...props } />
+                </div>);
             default:
                 return (<div className="form-floating mb-3">
                     <input onChange={OnChange} className={`form-control ${errors.errorMessage.length > 0 ? 'is-invalid' : 'is-valid'}`} { ...props } />

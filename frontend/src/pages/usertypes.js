@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import DataGrid from "../components/datagrid";
 import Dialog from "../components/dialog";
 import FormControl from "../components/form-control";
-import { getusertypes } from "../service/api";
+import { addusertype, getusertypes } from "../service/api";
 
 function UserTypes() {
     const [ usertypes, setUsertypes ] = useState([]);
+    const [ selectedUsertype, setSelectedUsertype ] = useState([]);
     const [ datatable, setDataTable ] = useState({});
+    const [ dialog, setDialog ] = useState("");
+
     useEffect(() => {
         getusertypes(0).then((result) => {
-            console.log(result);
             setUsertypes(result.Data);
 
             let datatable = {
@@ -18,8 +20,13 @@ function UserTypes() {
                 ],
                 Rows: result.Data,
                 ActionButtons: [
-                    { className: "btn btn-danger", ModalId: "#delete-modal", Label: "Delete" }
-                ]
+                    { className: "btn btn-danger", Label: "Delete", onClick: (e) => { setDialog("delete"); } }
+                ],
+                selectedRow: (row) => {
+                    datatable.Rows = datatable.Rows.map((r) => r.ID === row.ID ? { ...r, className: "row-selected" } : { ...r, className: "" });
+                    setDataTable(datatable);
+                    setSelectedUsertype(row);
+                }
             };
             setDataTable(datatable);
         }).catch((err) => {
@@ -27,19 +34,17 @@ function UserTypes() {
         });
     }, []);
 
-    const onAdd = () => {
-
-    }
-
     const onSave = (e) => {
+        console.log("e.checkValidity()");
         e.preventDefault();
-        console.log(e);
+        console.log(e.target.checkValidity());
+        // addusertype()
     }
     return (<>
             <h1>Configuration Usertypes</h1>
             <DataGrid table={datatable} />
-            <button type="button" className="btn btn-light" data-bs-toggle="modal" data-bs-target="#add-modal" onClick={onAdd}>Add</button>
-            <Dialog title={'Add user type'} id="add-modal" isForm={true} submit={onSave}>
+            <button type="button" className="btn btn-light" onClick={(e) => { setDialog("add")}}>Add</button>
+            <Dialog title={'Add user type'} show={ dialog === "add" } id="add-modal" isForm={true} submit={(formData) => onSave(formData)} CloseDialog={() => setDialog("")}>
                 <FormControl
                     // onChange={(val) => props.OnRouteEditChanges({...props.route, Package: val.target.value })}
                     type="text"
@@ -48,7 +53,7 @@ function UserTypes() {
                     required
                     label={'User type'}/>
             </Dialog>
-            <Dialog title={'Delete user'} id="delete-modal" saveText={'Delete'}>
+            <Dialog title={'Delete user'} show={ dialog === "delete" } saveText={'Delete'} CloseDialog={() => setDialog("")}>
                 <p>Are you sure you want to delete this items? this operation cannot be undone</p>
             </Dialog>
         </>)

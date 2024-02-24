@@ -156,18 +156,25 @@ func (db Database) AddRoute(route Route) error {
 
 	route.ID = lastid
 
-	usertypes, err := db.GetUserTypes(0, -1)
-	if err != nil {
-		return err
-	}
-
-	// add a routepermission for every usertypes
-	for _, u := range usertypes {
-		err = db.AddRoutePermission(RoutePermission{IDRoute: route.ID, IDUserType: u.ID, Enabled: false})
+	for _, p := range route.Permissions {
+		p.IDRoute = route.ID
+		err = db.AddRoutePermission(p)
 		if err != nil {
 			return err
 		}
 	}
+	// usertypes, err := db.GetUserTypes(0, -1)
+	// if err != nil {
+	// 	return err
+	// }
+
+	// add a routepermission for every usertypes
+	// for _, u := range usertypes {
+	// 	err = db.AddRoutePermission(RoutePermission{IDRoute: route.ID, IDUserType: u.ID, Enabled: false})
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

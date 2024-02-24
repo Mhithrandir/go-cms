@@ -92,12 +92,6 @@ async function getroutesfiltered(propriety, value) {
     let result = await getroutes(0);
     if(!result) return false;
     return result.Data.filter((r) => r[propriety] === value);
-    // getroutes(0).then((result) => {
-    //     return result.Data.filter((r) => r[propriety] === value);
-    // }).catch((err) => {
-    //     console.error(err);
-    //     return false;
-    // });
 }
 
 async function updateroute(route) {
@@ -163,6 +157,21 @@ async function getusertypes(page) {
     let result = await fetch(baseUrl + "api/usertype/getusertypes?" + new URLSearchParams({ page: page }).toString(), {
         method: 'GET',
         headers: GetHeaders()
+    });
+
+    if(result.status === 200) {
+        let data = await result.json();
+        return data;
+    }
+
+    return false;
+}
+
+async function addusertype(usertype) {
+    let result = await fetch(baseUrl + "api/usertype/add", {
+        method: 'POST',
+        headers: GetHeaders(),
+        body: JSON.stringify(usertype)
     });
 
     if(result.status === 200) {
@@ -243,6 +252,7 @@ export {
     updateroute,
     addroute,
     deleteroute,
+    addusertype,
     getmenu,
     getmenus,
     gettables,
